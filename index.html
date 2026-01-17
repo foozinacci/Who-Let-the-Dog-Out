@@ -1,11 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Who Let The Dog Out?</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <title>Who Let The Dog Out? 🐕</title>
+    <meta name="description" content="A fun detective mystery game - find out who let the dog out!">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            --secondary-gradient: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.25);
+            --neon-purple: #a855f7;
+            --neon-pink: #ec4899;
+            --neon-blue: #3b82f6;
+            --dark-bg: #0f0f1a;
+            --card-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,285 +28,771 @@
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--dark-bg);
             min-height: 100vh;
             font-family: 'Nunito', sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 1rem;
+            overflow-x: hidden;
+            position: relative;
         }
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 2rem;
-            max-width: 600px;
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
         }
 
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(120, 0, 255, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 0, 128, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(0, 200, 255, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 60% 60%, rgba(255, 100, 0, 0.2) 0%, transparent 40%);
+            animation: bgRotate 20s linear infinite;
+        }
+
+        @keyframes bgRotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Floating Paw Prints */
+        .floating-paws {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .paw {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.1;
+            animation: floatPaw 15s ease-in-out infinite;
+        }
+
+        @keyframes floatPaw {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.1;
+            }
+
+            50% {
+                transform: translateY(-100px) rotate(180deg);
+                opacity: 0.3;
+            }
+        }
+
+        /* Main Container - Glass Effect */
+        .container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 650px;
+            width: 100%;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+
+        /* Title Styling */
         .title {
             font-family: 'Fredoka One', cursive;
-            font-size: 2rem;
+            font-size: 2.2rem;
             text-align: center;
-            color: #764ba2;
-            margin-bottom: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 40px rgba(167, 139, 250, 0.5);
+            position: relative;
         }
 
         .title span {
-            color: #667eea;
+            background: var(--secondary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
+        .title-dog {
+            display: inline-block;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        /* Screens */
         .screen {
             display: none;
         }
 
         .screen.active {
             display: block;
-            animation: fadeIn 0.3s ease;
+            animation: fadeSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
+        /* Labels & Inputs */
         label {
             display: block;
             font-weight: 700;
-            color: #333;
+            color: rgba(255, 255, 255, 0.9);
             margin-bottom: 0.5rem;
             margin-top: 1rem;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         input[type="text"] {
             width: 100%;
-            padding: 0.75rem 1rem;
-            border: 2px solid #ddd;
-            border-radius: 10px;
+            padding: 0.9rem 1.2rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
             font-family: 'Nunito', sans-serif;
             font-size: 1rem;
-            transition: border-color 0.2s;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.4);
         }
 
         input[type="text"]:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--neon-purple);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
         }
 
+        /* Buttons */
         .btn {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-gradient);
             color: white;
-            padding: 1rem 2rem;
+            padding: 1.1rem 2.5rem;
             border: none;
-            border-radius: 10px;
+            border-radius: 14px;
             font-family: 'Fredoka One', cursive;
             font-size: 1.1rem;
             cursor: pointer;
-            margin-top: 1.5rem;
-            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 2rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
         }
 
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(168, 85, 247, 0.4);
         }
 
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* Story Box */
         .story {
-            background: #f8f9ff;
-            padding: 1.5rem;
-            border-radius: 15px;
-            line-height: 1.8;
-            color: #444;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2rem;
+            border-radius: 16px;
+            line-height: 1.9;
+            color: rgba(255, 255, 255, 0.9);
             margin-bottom: 1.5rem;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid var(--neon-purple);
+            font-size: 1.05rem;
         }
 
+        .story p {
+            margin-bottom: 0.8rem;
+        }
+
+        .story strong {
+            color: var(--neon-pink);
+            font-weight: 800;
+        }
+
+        .story em {
+            color: var(--neon-blue);
+        }
+
+        /* Question Elements */
         .question-num {
             font-size: 0.85rem;
-            color: #999;
+            color: rgba(255, 255, 255, 0.5);
             margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
         .question-text {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 1.5rem;
+            line-height: 1.4;
         }
 
+        /* Clue & Twist Cards */
         .clue {
-            background: #fff3cd;
-            padding: 1rem;
-            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
+            padding: 1.2rem;
+            border-radius: 12px;
             margin-bottom: 1rem;
-            border-left: 4px solid #ffc107;
+            border-left: 4px solid #fbbf24;
+            color: rgba(255, 255, 255, 0.9);
             font-style: italic;
+            animation: slideIn 0.3s ease;
         }
 
         .twist {
-            background: #f8d7da;
-            padding: 1rem;
-            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%);
+            padding: 1.2rem;
+            border-radius: 12px;
             margin-bottom: 1rem;
-            border-left: 4px solid #dc3545;
+            border-left: 4px solid #ef4444;
+            color: rgba(255, 255, 255, 0.95);
             font-weight: 700;
+            animation: pulse 0.5s ease;
         }
 
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        /* Options */
         .options {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.85rem;
         }
 
         .option {
-            background: #f0f0f0;
-            padding: 1rem;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 1.2rem 1.5rem;
+            border-radius: 14px;
             cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary-gradient);
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
         .option:hover {
-            background: #e0e0ff;
-            border-color: #667eea;
+            background: rgba(168, 85, 247, 0.2);
+            border-color: var(--neon-purple);
+            transform: translateX(8px);
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.2);
         }
 
+        .option:hover::before {
+            opacity: 1;
+        }
+
+        /* Suspects Grid */
         .suspects-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-            margin-top: 1rem;
+            gap: 0.85rem;
+            margin-top: 1.5rem;
         }
 
         .suspect-btn {
-            background: #f0f0f0;
-            padding: 1rem;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 1.2rem;
+            border-radius: 14px;
             cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(255, 255, 255, 0.1);
             text-align: center;
             font-weight: 700;
+            color: rgba(255, 255, 255, 0.9);
+            position: relative;
+            overflow: hidden;
         }
 
         .suspect-btn:hover {
-            background: #ffe0e0;
-            border-color: #dc3545;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(248, 113, 113, 0.2) 100%);
+            border-color: #ef4444;
+            transform: scale(1.03);
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
         }
 
+        .suspect-btn:nth-child(7) {
+            grid-column: span 2;
+        }
+
+        /* Guesses Counter */
         .guesses-left {
             text-align: center;
-            font-size: 0.9rem;
-            color: #dc3545;
+            font-size: 1rem;
+            color: #fbbf24;
             margin-bottom: 1rem;
             font-weight: 700;
-        }
-
-        .result {
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .result-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        .result-title {
-            font-family: 'Fredoka One', cursive;
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-        }
-
-        .result-text {
-            color: #666;
-            line-height: 1.6;
-        }
-
-        .wrong-guess {
-            background: #f8d7da;
-            padding: 1rem;
+            padding: 0.8rem;
+            background: rgba(251, 191, 36, 0.1);
             border-radius: 10px;
-            text-align: center;
-            margin-bottom: 1rem;
-            color: #721c24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
         }
 
+        /* Progress Bar */
         .progress-bar {
             width: 100%;
             height: 8px;
-            background: #e0e0e0;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             overflow: hidden;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            transition: width 0.3s ease;
+            background: var(--primary-gradient);
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 4px;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
         }
 
+        /* Notebook */
         .notebook {
-            background: #fffef0;
-            border: 1px solid #e0d890;
-            border-radius: 10px;
-            padding: 1rem;
-            margin-top: 1rem;
-            max-height: 150px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 1.2rem;
+            margin-top: 1.5rem;
+            max-height: 180px;
             overflow-y: auto;
+        }
+
+        .notebook::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notebook::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        .notebook::-webkit-scrollbar-thumb {
+            background: var(--neon-purple);
+            border-radius: 3px;
         }
 
         .notebook-title {
             font-weight: 700;
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .notebook-clue {
             font-size: 0.85rem;
-            color: #555;
-            padding: 0.25rem 0;
-            border-bottom: 1px dashed #e0d890;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 0.4rem 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        /* Result Screen */
+        .result {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .result-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            animation: iconPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes iconPop {
+            0% {
+                transform: scale(0);
+            }
+
+            80% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .result-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-text {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .result-text strong {
+            color: var(--neon-pink);
+        }
+
+        /* Wrong Guess */
+        .wrong-guess {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%);
+            padding: 1.5rem;
+            border-radius: 14px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20%,
+            60% {
+                transform: translateX(-10px);
+            }
+
+            40%,
+            80% {
+                transform: translateX(10px);
+            }
+        }
+
+        /* Audio Control */
+        .audio-control {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            padding: 10px 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .audio-control:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+        }
+
+        .audio-control .icon {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .audio-control:hover .icon {
+            transform: scale(1.1);
+        }
+
+        .audio-control .label {
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .audio-control.muted .icon {
+            opacity: 0.5;
+        }
+
+        /* Volume Bars Animation */
+        .volume-bars {
+            display: flex;
+            gap: 3px;
+            align-items: flex-end;
+            height: 20px;
+        }
+
+        .volume-bar {
+            width: 4px;
+            background: var(--neon-purple);
+            border-radius: 2px;
+            animation: volumeBar 0.8s ease-in-out infinite;
+        }
+
+        .volume-bar:nth-child(1) {
+            height: 8px;
+            animation-delay: 0s;
+        }
+
+        .volume-bar:nth-child(2) {
+            height: 16px;
+            animation-delay: 0.2s;
+        }
+
+        .volume-bar:nth-child(3) {
+            height: 12px;
+            animation-delay: 0.4s;
+        }
+
+        .volume-bar:nth-child(4) {
+            height: 20px;
+            animation-delay: 0.1s;
+        }
+
+        @keyframes volumeBar {
+
+            0%,
+            100% {
+                transform: scaleY(1);
+            }
+
+            50% {
+                transform: scaleY(0.5);
+            }
+        }
+
+        .audio-control.muted .volume-bar {
+            animation: none;
+            height: 4px !important;
+            opacity: 0.3;
+        }
+
+        /* YouTube Player (hidden) */
+        #youtube-player {
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            .title {
+                font-size: 1.6rem;
+            }
+
+            .suspects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .suspect-btn:nth-child(7) {
+                grid-column: span 1;
+            }
+
+            .audio-control {
+                top: 10px;
+                right: 10px;
+                padding: 8px 12px;
+            }
+
+            .audio-control .label {
+                display: none;
+            }
+        }
+
+        /* Suspects Input Grid */
+        .suspects-input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .suspects-input-grid input:nth-child(7) {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 500px) {
+            .suspects-input-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .suspects-input-grid input:nth-child(7) {
+                grid-column: span 1;
+            }
         }
     </style>
 </head>
+
 <body>
+    <!-- Animated Background -->
+    <div class="bg-animation"></div>
+
+    <!-- Floating Paw Prints -->
+    <div class="floating-paws" id="floatingPaws"></div>
+
+    <!-- Audio Control Toggle -->
+    <div class="audio-control muted" id="audioControl" onclick="toggleAudio()">
+        <div class="volume-bars">
+            <div class="volume-bar"></div>
+            <div class="volume-bar"></div>
+            <div class="volume-bar"></div>
+            <div class="volume-bar"></div>
+        </div>
+        <span class="icon">🔇</span>
+        <span class="label">Music</span>
+    </div>
+
+    <!-- Hidden YouTube Player for Audio -->
+    <div id="youtube-player"></div>
+
     <div class="container">
-        
+
         <!-- LANDING SCREEN -->
         <div class="screen active" id="landing">
-            <h1 class="title">Who Let The <span>Dog</span> Out?</h1>
-            
+            <h1 class="title">Who Let The <span class="title-dog">🐕 Dog</span> Out?</h1>
+
             <label>What's your name, detective?</label>
             <input type="text" id="detectiveName" placeholder="Detective...">
-            
+
             <label>What's the dog's name?</label>
             <input type="text" id="dogName" placeholder="Tiny">
-            
+
             <label>Name the 7 suspects:</label>
-            <input type="text" id="suspect1" placeholder="Mom">
-            <input type="text" id="suspect2" placeholder="Dad" style="margin-top:0.5rem">
-            <input type="text" id="suspect3" placeholder="Brother" style="margin-top:0.5rem">
-            <input type="text" id="suspect4" placeholder="Sister" style="margin-top:0.5rem">
-            <input type="text" id="suspect5" placeholder="Neighbor" style="margin-top:0.5rem">
-            <input type="text" id="suspect6" placeholder="The Dog" style="margin-top:0.5rem">
-            <input type="text" id="suspect7" placeholder="A Stranger" style="margin-top:0.5rem">
-            
-            <button class="btn" onclick="startGame()">START INVESTIGATION</button>
+            <div class="suspects-input-grid">
+                <input type="text" id="suspect1" placeholder="Mom">
+                <input type="text" id="suspect2" placeholder="Dad">
+                <input type="text" id="suspect3" placeholder="Brother">
+                <input type="text" id="suspect4" placeholder="Sister">
+                <input type="text" id="suspect5" placeholder="Neighbor">
+                <input type="text" id="suspect6" placeholder="The Dog">
+                <input type="text" id="suspect7" placeholder="A Stranger">
+            </div>
+
+            <button class="btn" onclick="startGame()">🔍 START INVESTIGATION</button>
         </div>
 
         <!-- STORY SCREEN -->
         <div class="screen" id="storyScreen">
-            <h1 class="title">Who Let <span id="dogNameTitle">Tiny</span> Out?</h1>
+            <h1 class="title">Who Let <span id="dogNameTitle">Tiny</span> 🐕 Out?</h1>
             <div class="story" id="storyText"></div>
-            <button class="btn" onclick="startQuestions()">BEGIN INVESTIGATION</button>
+            <button class="btn" onclick="startQuestions()">🕵️ BEGIN INVESTIGATION</button>
         </div>
 
         <!-- QUESTION SCREEN -->
@@ -311,9 +812,10 @@
 
         <!-- GUESS SCREEN -->
         <div class="screen" id="guessScreen">
-            <h1 class="title">Make Your <span>Accusation</span></h1>
+            <h1 class="title">Make Your <span>Accusation</span> ⚖️</h1>
             <div class="guesses-left" id="guessesLeft"></div>
-            <p style="text-align:center;margin-bottom:1rem;color:#666;">Who let <span id="dogNameGuess">Tiny</span> out?</p>
+            <p style="text-align:center;margin-bottom:1rem;color:rgba(255,255,255,0.7);">Who let <span id="dogNameGuess"
+                    style="color:#f472b6;font-weight:800;">Tiny</span> out?</p>
             <div class="suspects-grid" id="suspectsGrid"></div>
             <div class="notebook" id="notebookGuess">
                 <div class="notebook-title">📓 Detective's Notebook</div>
@@ -324,8 +826,8 @@
         <!-- WRONG GUESS SCREEN -->
         <div class="screen" id="wrongScreen">
             <div class="wrong-guess" id="wrongMessage"></div>
-            <p style="text-align:center;color:#666;margin-bottom:1rem;">Keep investigating...</p>
-            <button class="btn" onclick="continueBonusQuestions()">CONTINUE</button>
+            <p style="text-align:center;color:rgba(255,255,255,0.7);margin-bottom:1rem;">Keep investigating...</p>
+            <button class="btn" onclick="continueBonusQuestions()">🔍 CONTINUE</button>
         </div>
 
         <!-- RESULT SCREEN -->
@@ -334,14 +836,101 @@
                 <div class="result-icon" id="resultIcon"></div>
                 <div class="result-title" id="resultTitle"></div>
                 <div class="result-text" id="resultText"></div>
-                <button class="btn" onclick="location.reload()">PLAY AGAIN</button>
+                <button class="btn" onclick="location.reload()">🔄 PLAY AGAIN</button>
             </div>
         </div>
 
     </div>
 
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
     <script>
-        // GAME STATE
+        // ===== YOUTUBE AUDIO PLAYER =====
+        let ytPlayer;
+        let isMuted = true;
+
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player('youtube-player', {
+                height: '1',
+                width: '1',
+                videoId: 'OF2g4MhyU4s',
+                playerVars: {
+                    'autoplay': 1,
+                    'loop': 1,
+                    'playlist': 'OF2g4MhyU4s',
+                    'controls': 0,
+                    'showinfo': 0,
+                    'modestbranding': 1,
+                    'disablekb': 1,
+                    'fs': 0,
+                    'rel': 0
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            // Start muted
+            event.target.mute();
+            event.target.playVideo();
+        }
+
+        function onPlayerStateChange(event) {
+            // Loop the video when it ends
+            if (event.data === YT.PlayerState.ENDED) {
+                ytPlayer.seekTo(0);
+                ytPlayer.playVideo();
+            }
+        }
+
+        function toggleAudio() {
+            const control = document.getElementById('audioControl');
+            const icon = control.querySelector('.icon');
+
+            if (isMuted) {
+                // Unmute
+                if (ytPlayer && ytPlayer.unMute) {
+                    ytPlayer.unMute();
+                    ytPlayer.setVolume(50);
+                    ytPlayer.playVideo();
+                }
+                isMuted = false;
+                control.classList.remove('muted');
+                icon.textContent = '🔊';
+            } else {
+                // Mute
+                if (ytPlayer && ytPlayer.mute) {
+                    ytPlayer.mute();
+                }
+                isMuted = true;
+                control.classList.add('muted');
+                icon.textContent = '🔇';
+            }
+        }
+
+        // ===== FLOATING PAW PRINTS =====
+        function createFloatingPaws() {
+            const container = document.getElementById('floatingPaws');
+            const pawEmojis = ['🐾', '🐕', '🦴', '🐶'];
+
+            for (let i = 0; i < 15; i++) {
+                const paw = document.createElement('div');
+                paw.className = 'paw';
+                paw.textContent = pawEmojis[Math.floor(Math.random() * pawEmojis.length)];
+                paw.style.left = Math.random() * 100 + '%';
+                paw.style.top = Math.random() * 100 + '%';
+                paw.style.animationDelay = Math.random() * 15 + 's';
+                paw.style.fontSize = (1.5 + Math.random() * 1.5) + 'rem';
+                container.appendChild(paw);
+            }
+        }
+        createFloatingPaws();
+
+        // ===== GAME STATE =====
         let detective = '';
         let dog = '';
         let suspects = [];
@@ -353,7 +942,6 @@
         let bonusQuestionsAsked = 0;
         let totalQuestionsAsked = 0;
 
-        // QUESTION BANK - will be populated with suspect names
         let questions = [];
         let bonusQuestions = [];
 
@@ -374,24 +962,20 @@
                 getVal('suspect6', 'The Dog'),
                 getVal('suspect7', 'A Stranger')
             ];
-            
-            // Pick random culprit
+
             culprit = Math.floor(Math.random() * 7);
-            
-            // Generate questions
             generateQuestions();
-            
-            // Show story
+
             document.getElementById('dogNameTitle').textContent = dog;
             document.getElementById('storyText').innerHTML = generateStory();
-            
+
             showScreen('storyScreen');
         }
 
         function generateStory() {
             return `
                 <p>It was 3:47 PM on a Tuesday. Nothing special. Nothing suspicious.</p>
-                <p>Then ${suspects[0]} screamed.</p>
+                <p>Then <strong>${suspects[0]}</strong> screamed.</p>
                 <p>The back door was open. The leash was on the floor. <strong>${dog}</strong> was gone.</p>
                 <p>Everyone claims they were busy. Everyone has an alibi. Everyone loved ${dog}.</p>
                 <p>But someone let that dog out.</p>
@@ -405,219 +989,231 @@
         function generateQuestions() {
             const s = suspects;
             const d = dog;
-            
-            questions = [
+
+            // Create decoy suspects (not the real culprit) for misdirection
+            const decoys = [0, 1, 2, 3, 4, 5, 6].filter(i => i !== culprit);
+            const shuffle = arr => arr.sort(() => Math.random() - 0.5);
+            shuffle(decoys);
+
+            // All questions designed for maximum misdirection
+            const allQuestions = [
+                // ACT 1: THE SETUP - Everyone has motive
                 {
-                    q: `Where do you want to search first?`,
+                    q: `🔍 You examine the back door. What catches your eye?`,
                     options: [
-                        { text: `The backyard`, clue: `You find muddy paw prints leading to the fence. ${d} definitely went this way.`, herring: false },
-                        { text: `The kitchen`, clue: `There's an open bag of treats on the counter. Someone was bribing ${d}...`, herring: true }
+                        { text: `Scratches on the handle`, clue: `Deep scratches... like someone was in a hurry. Or ${d} was trying to get back IN?` },
+                        { text: `A partial footprint`, clue: `Too smudged to identify. Could be anyone. Could be everyone.` }
                     ]
                 },
                 {
-                    q: `Who do you want to interview first?`,
+                    q: `${s[decoys[0]]} approaches you nervously. "I need to tell you something..."`,
                     options: [
-                        { text: s[0], clue: `"${s[0]} says: 'I was doing laundry! I heard the door but thought it was ${s[1]}!'"`, herring: false },
-                        { text: s[1], clue: `"${s[1]} says: 'I was watching TV the whole time. Didn't see anything.'"`, herring: Math.random() > 0.5 }
+                        { text: `Listen closely`, clue: `"I... I saw ${s[decoys[1]]} near the door earlier. They looked suspicious." But ${s[decoys[0]]} won't make eye contact.` },
+                        { text: `Ask why they're nervous`, clue: `${s[decoys[0]]} goes pale. "I'm not nervous! I just... I have allergies!" They clearly don't have allergies.` }
                     ]
                 },
                 {
-                    q: `You find a suspicious item near the door. What do you examine?`,
+                    q: `🚨 TWIST: You find ${d}'s favorite toy hidden under a pillow in ${s[decoys[1]]}'s room!`,
                     options: [
-                        { text: `A single sock`, clue: `The sock belongs to ${s[2]}. Why is it by the door?`, herring: culprit !== 2 },
-                        { text: `A half-eaten sandwich`, clue: `${s[3]}'s favorite sandwich. Were they eating by the door?`, herring: culprit !== 3 }
+                        { text: `Confront them immediately`, clue: `${s[decoys[1]]} panics: "I was hiding it so ${d} would come back for it!" ...Is that genius or insane?` },
+                        { text: `Keep it secret for now`, clue: `You pocket the evidence. ${s[decoys[1]]} doesn't know you know. Yet.` }
                     ]
                 },
                 {
-                    q: `🚨 TWIST: A neighbor reports seeing someone near your fence!`,
+                    q: `${s[decoys[2]]} and ${s[decoys[3]]} are whispering in the corner. They stop when they see you.`,
                     options: [
-                        { text: `Ask for details`, clue: `The neighbor saw someone in a ${culprit === 4 ? 'red' : 'blue'} shirt. ${s[4]} owns a red shirt...`, herring: culprit !== 4 },
-                        { text: `Check the fence`, clue: `There's a loose board. Big enough for ${d} to squeeze through.`, herring: false }
+                        { text: `Demand to know what they said`, clue: `They exchange a look. ${s[decoys[2]]}: "Nothing!" ${s[decoys[3]]}: "We were talking about the weather!" It's not raining.` },
+                        { text: `Pretend you didn't notice`, clue: `You hear ${s[decoys[3]]} whisper: "...can't let them find out about the door..." WHAT DOOR?` }
                     ]
                 },
                 {
-                    q: `${s[2]} is acting nervous. What do you do?`,
+                    q: `You check phone records. Someone texted "is the coast clear?" at 3:42 PM.`,
                     options: [
-                        { text: `Interrogate them`, clue: `${s[2]} admits: "I opened the door for 2 SECONDS to get my ball!"`, herring: culprit !== 2 },
-                        { text: `Watch them secretly`, clue: `You catch ${s[2]} looking out the window, whispering "come back ${d}..."`, herring: false }
+                        { text: `Trace the number`, clue: `The number is... burner? No wait—it's ${s[decoys[4]]}'s old phone. Why do they have TWO phones?` },
+                        { text: `Check who received it`, clue: `The message went to... a number not in anyone's contacts. A mystery accomplice?` }
                     ]
                 },
                 {
-                    q: `You check ${d}'s favorite spot. What do you find?`,
+                    q: `🚨 TWIST: ${s[decoys[0]]} suddenly "remembers" seeing ${d} outside at 3:30 PM!`,
                     options: [
-                        { text: `A chewed-up note`, clue: `The note says "Let ${d} ou—" the rest is destroyed!`, herring: false },
-                        { text: `Nothing unusual`, clue: `Wait... ${d}'s favorite toy is missing. Someone took it outside?`, herring: false }
+                        { text: `But the escape was at 3:47...`, clue: `Exactly. Either ${s[decoys[0]]} is lying, confused, or... ${d} escaped TWICE?!` },
+                        { text: `Ask for more details`, clue: `${s[decoys[0]]}'s story keeps changing. First it was by the fence. Then the garden. Now suddenly it was near ${s[decoys[5]]}'s car.` }
                     ]
                 },
                 {
-                    q: `🚨 TWIST: ${s[5]} (the dog) couldn't have escaped alone... unless?`,
+                    q: `You find a torn piece of paper with handwriting: "Don't forget to—" The rest is missing.`,
                     options: [
-                        { text: `Check if ${d} can open doors`, clue: `You test it. ${d} CAN nudge the door if it's not latched!`, herring: culprit !== 5 },
-                        { text: `This is ridiculous`, clue: `You're right. A dog can't plan an escape. ...Right?`, herring: true }
+                        { text: `Compare handwriting samples`, clue: `It matches ${s[decoys[2]]}'s handwriting! But they claim they've "never seen that paper before in their life."` },
+                        { text: `Search for the other half`, clue: `You find it in the trash: "—lock the door after." WHO WROTE THIS?` }
                     ]
                 },
                 {
-                    q: `${s[3]} has been quiet. Too quiet.`,
+                    q: `${s[decoys[3]]} has mud on their shoes. Fresh mud.`,
                     options: [
-                        { text: `Ask them directly`, clue: `${s[3]} says: "I was on my phone the whole time, check my screen time!"`, herring: culprit !== 3 },
-                        { text: `Check their phone`, clue: `Their phone was dead at 3:47 PM. No alibi.`, herring: culprit === 3 }
+                        { text: `"Where were you?"`, clue: `"The garden!" But it hasn't rained in days. Where did the mud come from?` },
+                        { text: `Check where the mud matches`, clue: `The mud matches the backyard... exactly where ${d} escaped from. Coincidence?` }
+                    ]
+                },
+                // ACT 2: THE MISDIRECTION - Everything points wrong
+                {
+                    q: `🚨 BOMBSHELL: Security footage shows someone at the door at 3:45 PM... but the face is obscured!`,
+                    options: [
+                        { text: `Analyze the clothing`, clue: `Blue hoodie. ${s[decoys[1]]}, ${s[decoys[4]]}, AND ${s[culprit]} all own blue hoodies. Dead end.` },
+                        { text: `Check the height`, clue: `Medium height. That eliminates... nobody. Everyone in this house is medium height apparently.` }
                     ]
                 },
                 {
-                    q: `You find a trail of treats leading outside.`,
+                    q: `${s[decoys[4]]} claims they were on a video call during the escape. Proof!`,
                     options: [
-                        { text: `Follow the trail`, clue: `The trail leads to ${s[4]}'s yard. Suspicious!`, herring: culprit !== 4 },
-                        { text: `Check who bought treats`, clue: `${s[0]} bought treats yesterday. But anyone could've used them...`, herring: true }
+                        { text: `Verify the call`, clue: `The call log checks out... but wait. The call was on MUTE for 7 minutes around 3:47 PM. Suspicious gap.` },
+                        { text: `Who were they calling?`, clue: `"My friend." The friend confirms. But the friend also pauses weirdly when you ask about the mute...` }
                     ]
                 },
                 {
-                    q: `🚨 TWIST: Someone confesses! But are they lying?`,
+                    q: `You find ${d}'s leash tangled in the fence. How?`,
                     options: [
-                        { text: `"It was me!" - ${s[2]}`, clue: `${s[2]} looks guilty but... their story has holes.`, herring: culprit !== 2 },
-                        { text: `"I saw who did it!" - ${s[3]}`, clue: `${s[3]} points at ${s[culprit]}. But are they deflecting?`, herring: false }
+                        { text: `${d} pulled free`, clue: `The clip is still closed. Someone UNHOOKED ${d}. This wasn't an accident.` },
+                        { text: `Someone threw it there`, clue: `The angle is all wrong for ${d} running. Someone STAGED this.` }
                     ]
                 },
                 {
-                    q: `Time to check alibis. Who first?`,
+                    q: `🚨 TWIST: THREE different people admit to opening the door "briefly" that afternoon!`,
                     options: [
-                        { text: s[4], clue: `${s[4]} says they were mowing the lawn. You heard no mower.`, herring: culprit === 4 },
-                        { text: s[6], clue: `${s[6]}? They claim they weren't even in the area. But you saw them earlier...`, herring: culprit === 6 }
+                        { text: `Interview all three`, clue: `${s[decoys[0]]}: "Just for a package." ${s[decoys[2]]}: "To check the weather." ${s[decoys[5]]}: "I don't remember why." One of these is a LIE.` },
+                        { text: `Check the timeline`, clue: `All three claim they closed it immediately. But ${d} got out somehow. Someone's not telling the whole truth.` }
                     ]
                 },
                 {
-                    q: `You find ${d}'s collar by the gate.`,
+                    q: `${s[decoys[5]]}'s phone has a photo of ${d}... taken OUTSIDE the house at 3:52 PM.`,
                     options: [
-                        { text: `Examine it closely`, clue: `The collar was UNCLIPPED. ${d} didn't slip out—someone took it off!`, herring: false },
-                        { text: `Look for witnesses`, clue: `A kid across the street saw ${s[culprit]} near the gate!`, herring: false }
+                        { text: `"EXPLAIN THIS!"`, clue: `${s[decoys[5]]} breaks down: "I saw ${d} outside and tried to catch them! I didn't let them out, I SWEAR!"` },
+                        { text: `Check for other photos`, clue: `There's a deleted photo of... the back door. Open. With someone's shadow in frame. But whose?` }
                     ]
                 },
                 {
-                    q: `The back door handle has fingerprints.`,
+                    q: `The treats bag has fingerprints from ${s[0]}, ${s[2]}, ${s[4]}, AND ${s[6]}.`,
                     options: [
-                        { text: `Dust for prints`, clue: `Multiple prints found: ${s[0]}, ${s[2]}, and... ${s[culprit]}!`, herring: false },
-                        { text: `Ask who touched it last`, clue: `Everyone points at everyone else. Helpful.`, herring: true }
+                        { text: `Four suspects with access`, clue: `But wait—${s[1]}, ${s[3]}, and ${s[5]} could have used gloves. Everyone's still a suspect.` },
+                        { text: `Who touched it LAST?`, clue: `The top layer of prints is too smudged. Useless. Someone was careful.` }
+                    ]
+                },
+                // ACT 3: THE CHAOS - Nothing makes sense
+                {
+                    q: `🚨 SHOCKING: ${s[decoys[1]]} accuses ${s[decoys[3]]} directly! "I SAW THEM DO IT!"`,
+                    options: [
+                        { text: `Believe them`, clue: `But ${s[decoys[3]]} has witnesses for their alibi... OR DO THEY? The witnesses are ${s[decoys[0]]} and ${s[decoys[2]]}. Everyone's covering for someone.` },
+                        { text: `It's a deflection`, clue: `${s[decoys[1]]}'s accusation is suspiciously specific. How do they know so much unless THEY were there?` }
                     ]
                 },
                 {
-                    q: `🚨 TWIST: ${d} has been spotted three blocks away!`,
+                    q: `You find a SECOND route ${d} could have escaped—the garage side door!`,
                     options: [
-                        { text: `Chase after ${d}`, clue: `You catch ${d}! But now you're tired. Focus, detective.`, herring: true },
-                        { text: `Stay and investigate`, clue: `Smart. ${d} will come back. The truth won't.`, herring: false }
+                        { text: `Check for evidence`, clue: `Paw prints near both doors. ${d} went to the back door, then the side door? Someone was CHASING them through the house!` },
+                        { text: `Who has garage access?`, clue: `Only ${s[0]}, ${s[1]}, and ${s[6]} have keys. But the door wasn't locked...` }
                     ]
                 },
                 {
-                    q: `${s[1]} and ${s[0]} are arguing.`,
+                    q: `${s[decoys[4]]} suddenly "finds" ${d}'s collar in their pocket!`,
                     options: [
-                        { text: `Listen in`, clue: `${s[1]}: "You ALWAYS leave the door open!" ${s[0]}: "I DO NOT!"`, herring: culprit === 0 || culprit === 1 },
-                        { text: `Break it up`, clue: `They both look guilty. But guilty of what?`, herring: true }
+                        { text: `"HOW did that get there?!"`, clue: `${s[decoys[4]]}: "Someone must have PLANTED IT!" They're either framed... or the worst liar ever.` },
+                        { text: `Check for DNA`, clue: `The collar has ${d}'s fur (obviously) and... traces of hand lotion. ${s[decoys[4]]} doesn't use lotion. But ${s[decoys[2]]} does.` }
                     ]
                 },
                 {
-                    q: `You find a journal entry from ${s[3]}.`,
+                    q: `🚨 CONFESSION: "${s[decoys[0]]}" breaks down crying! "IT WAS ME! I... wait, no. It wasn't. I'm so confused!"`,
                     options: [
-                        { text: `Read it`, clue: `"${d} is SO annoying. I wish they'd just... never mind."`, herring: culprit === 3 },
-                        { text: `Respect their privacy`, clue: `You're a detective. Privacy is a suggestion.`, herring: true }
+                        { text: `They're covering for someone`, clue: `${s[decoys[0]]} keeps glancing at ${s[decoys[3]]}. Are they taking the fall for family?` },
+                        { text: `The guilt is eating them`, clue: `But their confusion seems genuine. Maybe they SAW something and can't process it?` }
                     ]
                 },
                 {
-                    q: `The security camera was unplugged.`,
+                    q: `A neighbor's Ring camera caught audio: "Just go! Go! Before they see!" at 3:46 PM.`,
                     options: [
-                        { text: `Check when it was unplugged`, clue: `It was unplugged at 3:30 PM. 17 minutes before ${d} disappeared!`, herring: false },
-                        { text: `Check who knew about it`, clue: `Only ${s[0]}, ${s[1]}, and ${s[culprit]} knew where the plug was.`, herring: false }
+                        { text: `Voice analysis`, clue: `The audio quality is too poor. It could be anyone. It could be... ${d}? No, dogs can't talk. ...Can they?` },
+                        { text: `Who was home?`, clue: `Everyone claims they were inside. But someone was at that door, and someone was TALKING TO ${d}.` }
+                    ]
+                },
+                // ACT 4: THE REVELATION - Truth emerges
+                {
+                    q: `🚨 BREAKTHROUGH: You realize the timeline everyone gave has a 3-minute gap. EVERYONE was unaccounted for at 3:46 PM!`,
+                    options: [
+                        { text: `Press each suspect`, clue: `Under pressure, stories crack. ${s[decoys[2]]} admits they were "in the bathroom." ${s[decoys[4]]} was "looking for their charger." Nobody can prove where they were.` },
+                        { text: `Someone's lying`, clue: `In those 3 minutes, ${d} was let out. One person knows exactly what happened. The others are genuinely confused.` }
                     ]
                 },
                 {
-                    q: `🚨 FINAL TWIST: ${d} returns home! With a note attached!`,
+                    q: `You notice ${s[culprit]} has been oddly... calm. Too calm.`,
                     options: [
-                        { text: `Read the note`, clue: `The note says: "Sorry not sorry —${s[culprit].charAt(0)}"`, herring: false },
-                        { text: `Check ${d} for clues`, clue: `${d} smells like ${s[culprit]}'s perfume/cologne!`, herring: false }
+                        { text: `Watch their body language`, clue: `While everyone else panics, ${s[culprit]} is measured. Composed. Like someone who knows exactly how this ends.` },
+                        { text: `Could be innocent confidence`, clue: `Then again, truly innocent people are sometimes the calmest. Or is that just what they want you to think?` }
                     ]
                 },
                 {
-                    q: `One last search. Where?`,
+                    q: `🚨 THE REAL TWIST: ${d} RETURNED on their own... and went straight to ${s[culprit]}'s room!`,
                     options: [
-                        { text: `${s[culprit]}'s room`, clue: `You find a leash. A SECOND leash. Why would they need two?`, herring: false },
-                        { text: `The garage`, clue: `Nothing here but old bikes and regret.`, herring: true }
+                        { text: `${d} knows something`, clue: `Dogs don't lie. ${d} went right to the person they associate with... what? Guilt? Comfort? TREATS?` },
+                        { text: `Could be coincidence`, clue: `But ${d} passed 6 other people and 5 other rooms. Something drew them there specifically.` }
                     ]
                 },
                 {
-                    q: `It's time. You have all the clues. Who do you confront?`,
+                    q: `One final piece: ${s[culprit]}'s alibi has ONE tiny inconsistency that nobody noticed...`,
                     options: [
-                        { text: `Gather everyone`, clue: `Everyone's here. The tension is thick. Time to accuse.`, herring: false },
-                        { text: `Confront ${s[culprit]} alone`, clue: `${s[culprit]} looks nervous. Very nervous.`, herring: false }
+                        { text: `They claimed to be upstairs—but the floorboards never creaked`, clue: `You were in the kitchen at 3:46 PM. You would have heard. The floorboards ALWAYS creak. Unless ${s[culprit]} wasn't upstairs at all...` },
+                        { text: `The TV show they claimed to watch aired at 4 PM, not 3:45 PM`, clue: `A 15-minute gap. Where were they really? By the back door, perhaps?` }
+                    ]
+                },
+                {
+                    q: `It's time. Based on the evidence—and the lies—you must make your accusation.`,
+                    options: [
+                        { text: `"Gather everyone. It ends now."`, clue: `The room falls silent. All eyes on you. Think carefully, ${detective}. You only get one chance.` },
+                        { text: `"I need to think this through..."`, clue: `Review everything. The confusing testimonies. The planted evidence. The ONE person whose story quietly unraveled. Trust your gut.` }
                     ]
                 }
             ];
 
+            // Shuffle questions but keep the last 4 (revelation questions) at the end
+            const investigationQuestions = allQuestions.slice(0, -4);
+            const revelationQuestions = allQuestions.slice(-4);
+            shuffle(investigationQuestions);
+
+            // Take 16 investigation questions + 4 revelation = 20 total
+            questions = [...investigationQuestions.slice(0, 16), ...revelationQuestions];
+
+            // Bonus questions are also mysterious, featuring false leads
             bonusQuestions = [
                 {
-                    q: `Where was ${s[culprit]} at 3:45 PM?`,
+                    q: `A new witness appears! The pizza delivery driver was here at 3:40 PM...`,
                     options: [
-                        { text: `Ask them directly`, clue: `They stutter. They can't remember. Suspicious.`, herring: false },
-                        { text: `Ask ${s[(culprit + 1) % 7]}`, clue: `"I think they were near the back door..."`, herring: false }
+                        { text: `Interview them`, clue: `"I saw someone pacing by the back window. Looked stressed. Couldn't see their face though."` },
+                        { text: `Check the receipt`, clue: `The pizza was ordered by... ${s[decoys[1]]}. But they claimed they "weren't hungry" that day.` }
                     ]
                 },
                 {
-                    q: `Check ${d}'s water bowl.`,
+                    q: `🚨 PLOT TWIST: ${s[decoys[3]]} reveals they have ${d} on a GPS tracker!`,
                     options: [
-                        { text: `Examine it`, clue: `It's full. ${d} didn't drink before leaving. Someone rushed them out.`, herring: false },
-                        { text: `Taste it (???)`, clue: `It's water. You're a weird detective.`, herring: true }
+                        { text: `Check the route`, clue: `${d} went out the back, around the block, then... RETURNED before running off again? Someone brought ${d} back, then let them out AGAIN!` },
+                        { text: `Why didn't they mention this before?!`, clue: `${s[decoys[3]]}'s excuse: "I forgot I had it..." WHO FORGETS A GPS TRACKER ON THEIR DOG?` }
                     ]
                 },
                 {
-                    q: `The mailman saw something.`,
+                    q: `The torn note's missing piece is found—in ${s[decoys[5]]}'s jacket pocket!`,
                     options: [
-                        { text: `Interview them`, clue: `"Yeah, I saw someone let the dog out. Looked like ${s[culprit]}."`, herring: false },
-                        { text: `Check the mail for clues`, clue: `It's just bills. Disappointing.`, herring: true }
+                        { text: `Confront them`, clue: `${s[decoys[5]]}: "I FOUND IT! I was going to tell you!" Classic. They all say that.` },
+                        { text: `This could have been planted`, clue: `You're right to be suspicious. Multiple people had access to that jacket today.` }
                     ]
                 },
                 {
-                    q: `${s[(culprit + 2) % 7]} has a theory.`,
+                    q: `${s[culprit]}'s browser history shows pet store searches... for "escape-proof harnesses."`,
                     options: [
-                        { text: `Listen`, clue: `"I bet it was ${s[culprit]}. They've been weird all day."`, herring: false },
-                        { text: `Dismiss them`, clue: `They look offended. But maybe they're onto something.`, herring: false }
+                        { text: `They knew ${d} would run!`, clue: `Or... they were trying to PREVENT escapes. The search was from 2 weeks ago. Innocent or planning?` },
+                        { text: `Anyone could have used their computer`, clue: `True. But the search was done at 2 AM. Who else would be awake?` }
                     ]
                 },
                 {
-                    q: `One more look at the crime scene.`,
+                    q: `🚨 FINAL DISCOVERY: ${d}'s bark is caught on home assistant audio at exactly 3:46 PM. Someone says "Shhhh!"`,
                     options: [
-                        { text: `The door`, clue: `There's a smudge on the handle. Same color as ${s[culprit]}'s shirt.`, herring: false },
-                        { text: `The floor`, clue: `Footprints leading outside... and back in. Someone went with ${d}.`, herring: false }
-                    ]
-                },
-                {
-                    q: `Check ${s[culprit]}'s social media.`,
-                    options: [
-                        { text: `Do it`, clue: `They posted "freedom 🐕" at 3:50 PM. WHAT.`, herring: false },
-                        { text: `Too invasive`, clue: `Fine. But you're missing out.`, herring: true }
-                    ]
-                },
-                {
-                    q: `${d}'s favorite toy is outside.`,
-                    options: [
-                        { text: `Check for fingerprints`, clue: `${s[culprit]}'s prints are all over it.`, herring: false },
-                        { text: `Give it to ${d}`, clue: `${d} is happy. But you're no closer to the truth. Wait, yes you are.`, herring: false }
-                    ]
-                },
-                {
-                    q: `The treats are a specific brand.`,
-                    options: [
-                        { text: `Check who buys them`, clue: `Only ${s[culprit]} buys this brand. "They're ${d}'s favorite!"`, herring: false },
-                        { text: `Eat one`, clue: `It's dog food. Why did you do that.`, herring: true }
-                    ]
-                },
-                {
-                    q: `${s[culprit]} is packing a bag.`,
-                    options: [
-                        { text: `Confront them`, clue: `"I'm not running! I just... have a trip planned!"`, herring: false },
-                        { text: `Let them go`, clue: `They'll be back. Probably.`, herring: true }
-                    ]
-                },
-                {
-                    q: `Final bonus clue location?`,
-                    options: [
-                        { text: `${s[culprit]}'s shoes`, clue: `Grass stains. Fresh ones. They were outside.`, herring: false },
-                        { text: `The fence again`, clue: `There's a hair stuck in the wood. Same color as ${s[culprit]}'s.`, herring: false }
+                        { text: `Enhance the audio`, clue: `The "shhhh" is quiet, careful. Whoever it was KNEW they were doing something wrong.` },
+                        { text: `${d} was trying to alert everyone`, clue: `${d} barked THREE TIMES. Three warnings. And someone silenced them each time.` }
                     ]
                 }
             ];
@@ -633,42 +1229,38 @@
             const q = questions[currentQuestion];
             const total = inBonusRound ? 5 : 20;
             const current = inBonusRound ? bonusQuestionsAsked + 1 : currentQuestion + 1;
-            
+
             document.getElementById('progressFill').style.width = `${(current / total) * 100}%`;
-            document.getElementById('questionNum').textContent = inBonusRound ? 
-                `BONUS QUESTION ${bonusQuestionsAsked + 1}/5` : 
+            document.getElementById('questionNum').textContent = inBonusRound ?
+                `BONUS QUESTION ${bonusQuestionsAsked + 1}/5` :
                 `QUESTION ${currentQuestion + 1}/20`;
             document.getElementById('questionText').textContent = q.q;
             document.getElementById('clueArea').innerHTML = '';
-            
-            const optionsHtml = q.options.map((opt, i) => 
+
+            const optionsHtml = q.options.map((opt, i) =>
                 `<div class="option" onclick="selectAnswer(${i})">${opt.text}</div>`
             ).join('');
             document.getElementById('optionsArea').innerHTML = optionsHtml;
-            
+
             updateNotebook('notebook');
         }
 
         function selectAnswer(index) {
             const q = inBonusRound ? bonusQuestions[bonusQuestionsAsked] : questions[currentQuestion];
             const selected = q.options[index];
-            
-            // Show clue
+
             const clueClass = q.q.includes('TWIST') ? 'twist' : 'clue';
             document.getElementById('clueArea').innerHTML = `<div class="${clueClass}">${selected.clue}</div>`;
-            
-            // Store clue
+
             cluesFound.push(selected.clue);
             updateNotebook('notebook');
-            
-            // Disable options
+
             document.querySelectorAll('.option').forEach(opt => {
                 opt.style.pointerEvents = 'none';
                 opt.style.opacity = '0.5';
             });
             document.querySelectorAll('.option')[index].style.opacity = '1';
-            
-            // Next question after delay
+
             setTimeout(() => {
                 if (inBonusRound) {
                     bonusQuestionsAsked++;
@@ -692,17 +1284,17 @@
 
         function showBonusQuestion() {
             const q = bonusQuestions[bonusQuestionsAsked];
-            
+
             document.getElementById('progressFill').style.width = `${((bonusQuestionsAsked + 1) / 5) * 100}%`;
             document.getElementById('questionNum').textContent = `BONUS QUESTION ${bonusQuestionsAsked + 1}/5`;
             document.getElementById('questionText').textContent = q.q;
             document.getElementById('clueArea').innerHTML = '';
-            
-            const optionsHtml = q.options.map((opt, i) => 
+
+            const optionsHtml = q.options.map((opt, i) =>
                 `<div class="option" onclick="selectAnswer(${i})">${opt.text}</div>`
             ).join('');
             document.getElementById('optionsArea').innerHTML = optionsHtml;
-            
+
             updateNotebook('notebook');
             showScreen('questionScreen');
         }
@@ -710,12 +1302,12 @@
         function showGuessScreen() {
             document.getElementById('dogNameGuess').textContent = dog;
             document.getElementById('guessesLeft').textContent = `⚠️ ${guessesLeft} guess${guessesLeft !== 1 ? 'es' : ''} remaining`;
-            
-            const grid = suspects.map((s, i) => 
+
+            const grid = suspects.map((s, i) =>
                 `<div class="suspect-btn" onclick="makeGuess(${i})">${s}</div>`
             ).join('');
             document.getElementById('suspectsGrid').innerHTML = grid;
-            
+
             updateNotebook('notebookGuess');
             showScreen('guessScreen');
         }
@@ -723,10 +1315,10 @@
         function updateNotebook(elementId) {
             const container = document.getElementById(elementId);
             const cluesContainer = document.getElementById(elementId === 'notebook' ? 'notebookClues' : 'notebookCluesGuess');
-            
+
             if (cluesFound.length > 0) {
                 container.style.display = 'block';
-                cluesContainer.innerHTML = cluesFound.map(c => 
+                cluesContainer.innerHTML = cluesFound.map(c =>
                     `<div class="notebook-clue">• ${c.replace(/<[^>]*>/g, '')}</div>`
                 ).join('');
             }
@@ -734,10 +1326,8 @@
 
         function makeGuess(index) {
             if (index === culprit) {
-                // CORRECT!
                 showResult(true);
             } else {
-                // WRONG
                 guessesLeft--;
                 if (guessesLeft <= 0) {
                     showResult(false);
@@ -760,15 +1350,15 @@
         function showResult(won) {
             const icon = won ? '🎉' : '😭';
             const title = won ? `YOU SOLVED IT!` : `CASE CLOSED`;
-            const text = won ? 
+            const text = won ?
                 `Congratulations, ${detective}! You figured out that <strong>${suspects[culprit]}</strong> let ${dog} out!<br><br>${getMotiveText()}` :
                 `The truth comes out: It was <strong>${suspects[culprit]}</strong> who let ${dog} out all along!<br><br>${getMotiveText()}`;
-            
+
             document.getElementById('resultIcon').textContent = icon;
             document.getElementById('resultTitle').textContent = title;
-            document.getElementById('resultTitle').style.color = won ? '#28a745' : '#dc3545';
+            document.getElementById('resultTitle').style.color = won ? '#4ade80' : '#f87171';
             document.getElementById('resultText').innerHTML = text;
-            
+
             showScreen('resultScreen');
         }
 
@@ -791,4 +1381,5 @@
         }
     </script>
 </body>
+
 </html>
