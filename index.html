@@ -1093,14 +1093,35 @@
             }
             createFloatingPaws();
 
-            // ===== SOUND EFFECTS (separate from music) =====
+            // ===== SOUND EFFECTS LIBRARY =====
+            // Free sounds from Mixkit (similar to Pixabay - royalty-free)
             const SFX = {
+                // Investigation sounds
                 twist: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
                 reveal: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3',
                 suspense: 'https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3',
-                wrong: 'https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3',
+                discovery: 'https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.mp3',
+                clue: 'https://assets.mixkit.co/active_storage/sfx/2574/2574-preview.mp3',
+
+                // Drama/Tension sounds
+                dramatic: 'https://assets.mixkit.co/active_storage/sfx/2573/2573-preview.mp3',
+                shock: 'https://assets.mixkit.co/active_storage/sfx/2569/2569-preview.mp3',
+                tension: 'https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3',
+
+                // Success/Failure sounds
                 correct: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3',
-                click: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'
+                wrong: 'https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3',
+                victory: 'https://assets.mixkit.co/active_storage/sfx/1432/1432-preview.mp3',
+                fanfare: 'https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3',
+
+                // UI sounds
+                click: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3',
+                pop: 'https://assets.mixkit.co/active_storage/sfx/2575/2575-preview.mp3',
+                whoosh: 'https://assets.mixkit.co/active_storage/sfx/2576/2576-preview.mp3',
+
+                // Dog sounds
+                bark: 'https://assets.mixkit.co/active_storage/sfx/77/77-preview.mp3',
+                whine: 'https://assets.mixkit.co/active_storage/sfx/79/79-preview.mp3'
             };
 
             function playSFX(type) {
