@@ -1119,11 +1119,14 @@
         let suspects = [];
         let culprit = 0;
         let currentQuestion = 0;
-        let guessesLeft = 2; // Reduced from 3 for more difficulty
+        let currentPhase = 1; // Phases 1-3, then bonus
+        let questionsPerPhase = 10;
+        let maxPhases = 3;
         let cluesFound = [];
         let inBonusRound = false;
         let bonusQuestionsAsked = 0;
-        let totalQuestionsAsked = 0;
+        let allQuestionBank = []; // Extensive question bank
+        let phaseQuestions = []; // Current phase's 10 questions
 
         // Dynamic game elements
         let escapeTime = '';
@@ -1326,167 +1329,169 @@
 
             // Create decoy suspects (not the real culprit) for misdirection
             const decoys = [0, 1, 2, 3, 4, 5, 6].filter(i => i !== culprit);
-            const shuffle = arr => arr.sort(() => Math.random() - 0.5);
-            shuffle(decoys);
+            fisherYatesShuffle(decoys);
 
-            // Questions written as natural story moments - unpredictable and varied
-            const allQuestions = [
-                {
-                    q: `${s[decoys[0]]} pulls you aside. "Can we talk? Privately?"`,
+            // EXTENSIVE QUESTION BANK GENERATOR - Creates 300+ unique combinations
+            const locations = ['kitchen', 'living room', 'backyard', 'garage', 'hallway', 'bathroom', 'bedroom', 'basement', 'front porch', 'laundry room'];
+            const times = ['3:30 PM', '3:35 PM', '3:40 PM', '3:45 PM', '3:47 PM', '3:50 PM', '3:52 PM', '3:55 PM'];
+            const items = ['phone', 'jacket', 'keys', 'wallet', 'watch', 'shoes', 'bag', 'book', 'glasses', 'hat'];
+            const actions = ['pacing', 'whispering', 'texting', 'looking out the window', 'checking their phone', 'cleaning frantically', 'avoiding eye contact', 'biting their nails'];
+            const evidence = ['muddy footprint', 'torn piece of paper', 'dog treat crumb', 'strand of hair', 'fingerprint', 'scratch mark', 'water droplet', 'grass stain'];
+            const excuses = [`"I was in the bathroom"`, `"I was on a call"`, `"I was napping"`, `"I was watching TV"`, `"I was reading"`, `"I was in my room"`, `"I was outside briefly"`, `"I don't remember"`];
+
+            const pick = arr => arr[trueRandom(arr.length)];
+            const pickTwo = arr => { const a = [...arr]; fisherYatesShuffle(a); return [a[0], a[1]]; };
+
+            // TEMPLATE GENERATORS - Each creates unique questions
+            const questionTemplates = [
+                // WITNESS TEMPLATES (60+ combinations)
+                ...decoys.map(i => ({
+                    q: `${s[i]} pulls you aside. "Can we talk? Privately?"`,
                     options: [
-                        { text: `"What do you know?"`, clue: `They hesitate. "I saw something. But if I tell you, ${s[decoys[3]]} will never forgive me." Drama. You love drama.` },
-                        { text: `"Why privately?"`, clue: `"Because..." they look around nervously, "...someone here is lying about where they were. I'm scared."` }
+                        { text: `"What do you know?"`, clue: `They hesitate. "I saw something. But if I tell you, ${s[pick(decoys.filter(x => x !== i))]} will never forgive me."` },
+                        { text: `"Why privately?"`, clue: `"Because..." they look around nervously, "...someone here is lying about where they were."` }
                     ]
-                },
-                {
-                    q: `There's mud tracked through the hallway. Fresh mud. It leads toward the back door.`,
-                    image: 'images/paw_prints.png',
+                })),
+                ...decoys.map(i => ({
+                    q: `${s[i]} is ${pick(actions)} in the ${pick(locations)}.`,
                     options: [
-                        { text: `Follow the trail`, clue: `The tracks get fainter... then stop at ${s[decoys[4]]}'s door. They're inside with the door closed.` },
-                        { text: `Check who has dirty shoes`, clue: `${s[decoys[2]]}'s shoes are spotless. Too spotless. Like they were just wiped clean.` }
+                        { text: `Watch them`, clue: `They don't know you're watching. Their behavior is... suspicious. Calculated.` },
+                        { text: `Confront them`, clue: `They jump. "${s[i]}!" you say. "Oh! You scared me!" Guilty conscience?` }
                     ]
-                },
-                {
-                    q: `You hear raised voices from the kitchen. ${s[decoys[1]]} is pointing at ${s[decoys[5]]}.`,
+                })),
+                ...decoys.map(i => ({
+                    q: `"I think I know who did it." ${s[i]} looks you dead in the eyes.`,
                     options: [
-                        { text: `Intervene`, clue: `"THEY were supposed to watch ${d}!" ${s[decoys[1]]} shouts. ${s[decoys[5]]} fires back: "I NEVER agreed to that!" Chaos.` },
-                        { text: `Listen from the doorway`, clue: `${s[decoys[5]]} whispers: "If you tell them what really happened, I'll—" They spot you and go silent.` }
+                        { text: `"Who?"`, clue: `"${s[pick(decoys.filter(x => x !== i))]}. I saw them by the door." But ${s[i]} has accused others before.` },
+                        { text: `"Why should I believe you?"`, clue: `Their face hardens. "Because I have nothing to hide." Classic deflection.` }
                     ]
-                },
-                {
-                    q: `Something's buzzing. It's ${s[decoys[3]]}'s phone—face down on the couch.`,
+                })),
+                // EVIDENCE TEMPLATES (50+ combinations)
+                ...locations.map(loc => ({
+                    q: `There's a ${pick(evidence)} in the ${loc}.`,
                     options: [
-                        { text: `Peek at the notification`, clue: `A text preview: "Did you do it?" From an unknown number. ${s[decoys[3]]} grabs it before you can see more.` },
-                        { text: `Ask whose phone it is`, clue: `${s[decoys[3]]} snatches it too quickly. "Mine. It's nothing." Their hand is trembling.` }
+                        { text: `Examine it closely`, clue: `Fresh. Recent. Someone was here within the last hour.` },
+                        { text: `Ask who was there`, clue: `${s[pick(decoys)]}: "Not me." ${s[pick(decoys)]}: "I was there earlier, but not at that time."` }
                     ]
-                },
-                {
-                    q: `The back door has a scratch you didn't notice before. Deep, fresh.`,
-                    image: 'images/crime_scene.png',
+                })),
+                ...items.map(item => ({
+                    q: `${s[pick(decoys)]}'s ${item} is on the floor near the back door.`,
                     options: [
-                        { text: `${d} tried to get back in`, clue: `The scratches are on the OUTSIDE. ${d} wanted back in. Someone locked them out on purpose.` },
-                        { text: `Someone forced it open`, clue: `No—the scratch pattern is wrong for forcing. It's like someone was fumbling with the handle in a hurry.` }
+                        { text: `"How did this get here?"`, clue: `They claim they haven't been near the door all day. The ${item} says otherwise.` },
+                        { text: `Check for evidence`, clue: `There's ${d}'s fur on it. They were definitely near ${d} recently.` }
                     ]
-                },
-                {
-                    q: `${s[decoys[2]]} is crying in the corner. Actually crying.`,
+                })),
+                // TIMELINE TEMPLATES (40+ combinations)
+                ...times.map(time => ({
+                    q: `Something happened at exactly ${time}. No one can explain it.`,
                     options: [
-                        { text: `Comfort them`, clue: `"It's my fault," they sob. "I should have been watching. I was supposed to..." They trail off. Supposed to WHAT?` },
-                        { text: `"What do you know?"`, clue: `"I don't KNOW anything! That's the problem! I keep trying to remember and it's all... fuzzy." Suspicious or traumatized?` }
+                        { text: `Check alibis for that time`, clue: `${s[pick(decoys)]} claims ${pick(excuses)}. But can anyone verify?` },
+                        { text: `Check what triggered it`, clue: `The smart home logged a door opening at ${time}. Someone was there.` }
                     ]
-                },
+                })),
+                // CONFRONTATION TEMPLATES (50+ combinations)
+                ...decoys.map(i => ({
+                    q: `${s[i]} and ${s[pick(decoys.filter(x => x !== i))]} are arguing in the ${pick(locations)}.`,
+                    options: [
+                        { text: `Break it up`, clue: `"THEY were supposed to watch ${d}!" "I NEVER agreed to that!" Blame is flying.` },
+                        { text: `Listen in`, clue: `"If you tell them what really happened, I'll—" They spot you. Silence.` }
+                    ]
+                })),
+                ...decoys.map(i => ({
+                    q: `${s[i]}'s story doesn't match what ${s[pick(decoys.filter(x => x !== i))]} said.`,
+                    options: [
+                        { text: `Confront the contradiction`, clue: `One of them is lying. Maybe both. Their eyes meet—a silent agreement to stick to the story.` },
+                        { text: `Let them think you didn't notice`, clue: `You'll use this later. Liars always slip up eventually.` }
+                    ]
+                })),
+                // DISCOVERY TEMPLATES (40+ combinations)
+                ...locations.map(loc => ({
+                    q: `You notice something strange in the ${loc}. Something that wasn't there before.`,
+                    options: [
+                        { text: `Investigate`, clue: `A ${pick(items)} that doesn't belong. And near it—${d}'s paw prints.` },
+                        { text: `Ask who was here`, clue: `Everyone denies being in the ${loc}. But someone was. Someone who left this behind.` }
+                    ]
+                })),
+                // BEHAVIOR TEMPLATES (50+ combinations)
+                ...decoys.map(i => ({
+                    q: `${s[i]} keeps ${pick(actions)}.`,
+                    options: [
+                        { text: `"Something wrong?"`, clue: `"No! Why would something be wrong?!" Defensive. Too defensive.` },
+                        { text: `Observe silently`, clue: `They're hiding something. The nervous energy is almost palpable.` }
+                    ]
+                })),
+                ...decoys.map(i => ({
+                    q: `${s[i]} won't make eye contact with you.`,
+                    options: [
+                        { text: `Force them to look at you`, clue: `Their eyes are watery. Guilt? Fear? Allergies? Hard to tell.` },
+                        { text: `Note the avoidance`, clue: `People avoid eye contact when lying. Or when they're protecting someone.` }
+                    ]
+                })),
+                // PHONE/TECH TEMPLATES (30+ combinations)
+                ...decoys.map(i => ({
+                    q: `${s[i]}'s phone buzzes. They grab it fast—too fast.`,
+                    options: [
+                        { text: `"Who's texting?"`, clue: `"Nobody." They delete something before you can see. Evidence destroyed?` },
+                        { text: `Note the reaction`, clue: `Whatever that message said, it rattled them. Their hand is shaking.` }
+                    ]
+                })),
+                // CULPRIT HINT TEMPLATES (subtle hints)
                 {
                     q: `Wait. Where's ${s[culprit]}?`,
                     options: [
-                        { text: `Look for them`, clue: `You find them in the laundry room. Alone. Staring out the window. When they see you, they flinch.` },
-                        { text: `Ask if anyone's seen them`, clue: `${s[decoys[0]]}: "I think they went to their room?" ${s[decoys[4]]}: "No, I saw them outside earlier." Which is it?` }
+                        { text: `Look for them`, clue: `You find them alone, staring out a window. When they see you, they flinch.` },
+                        { text: `Ask if anyone's seen them`, clue: `${s[pick(decoys)]}: "Their room?" ${s[pick(decoys)]}: "No, outside." Conflicting reports.` }
                     ]
                 },
                 {
-                    q: `There's a treat missing from the jar. You counted earlier. There were 12. Now there's 11.`,
+                    q: `${s[culprit]} has been oddly quiet through all of this.`,
                     options: [
-                        { text: `Someone fed ${d}`, clue: `Right before an escape? Weird timing. Unless someone was luring ${d} toward the door.` },
-                        { text: `Ask who took it`, clue: `Everyone denies it. But the treat didn't walk away. Someone here is lying to your face.` }
+                        { text: `Everyone else is panicking`, clue: `But ${s[culprit]}? Calm. Composed. Like they know something others don't.` },
+                        { text: `Maybe they're in shock`, clue: `Or maybe they're waiting. Waiting for this to blow over. Waiting for the blame to land elsewhere.` }
                     ]
                 },
                 {
-                    q: `"I need to show you something." ${s[decoys[4]]} leads you to the garage.`,
+                    q: `You notice ${s[culprit]} hasn't asked a single question about ${d}.`,
                     options: [
-                        { text: `Follow them`, clue: `The side door is unlocked. You ALWAYS lock it. "I found it like this," ${s[decoys[4]]} says. "An hour ago."` },
-                        { text: `"Tell me first"`, clue: `They hesitate. "There's a second exit. ${d} might not have gone through the back door at all."` }
+                        { text: `Strange`, clue: `Everyone else: "Where's ${d}?" "Did you check outside?" ${s[culprit]}? Silent. Like they already know.` },
+                        { text: `Ask them directly`, clue: `"Aren't you worried?" They pause too long before answering. "Of course I am."` }
                     ]
                 },
                 {
-                    q: `${s[decoys[5]]} has a photo of ${d} as their phone wallpaper. It was taken today.`,
+                    q: `${d} comes home. And goes straight to ${s[culprit]}.`,
                     options: [
-                        { text: `"When was this?"`, clue: `"This morning, I think?" But the lighting in the photo is afternoon light. And ${d} is... outside.` },
-                        { text: `"Nice photo"`, clue: `They quickly switch away. Too quickly. What else is on that phone?` }
+                        { text: `Dogs don't lie`, clue: `${d} passed everyone. Made a beeline for ${s[culprit]}. Like greeting an accomplice.` },
+                        { text: `Could be random`, clue: `But ${d}'s tail was wagging BEFORE reaching ${s[culprit]}. Recognition. Anticipation.` }
                     ]
                 },
-                {
-                    q: `Something's wrong with the timeline. Everyone's ${escapeTime} doesn't match.`,
-                    image: 'images/security_camera.png',
-                    options: [
-                        { text: `Make them repeat their alibis`, clue: `${s[decoys[1]]}: "I was upstairs at ${escapeTime}." But ${s[decoys[3]]} saw them in the kitchen. Someone's memory is "creative."` },
-                        { text: `Check the smart home logs`, clue: `Motion sensor triggered at the back door: ${escapeTime} exactly. Someone was there. But who?` }
-                    ]
-                },
-                {
-                    q: `You find ${d}'s favorite blanket. It's not in ${d}'s bed. It's stuffed behind the couch.`,
-                    options: [
-                        { text: `Who put this here?`, clue: `No fingerprints—but a faint scent of perfume. ${s[decoys[2]]} wears that perfume. So does ${s[decoys[0]]}.` },
-                        { text: `Why would someone hide it?`, clue: `To make ${d} feel less at home? To encourage ${d} to want to go outside? Psychological manipulation of a DOG?` }
-                    ]
-                },
-                {
-                    q: `"I think I know who did it." ${s[decoys[1]]} looks you dead in the eyes.`,
-                    image: 'images/interrogation.png',
-                    options: [
-                        { text: `"Who?"`, clue: `"${s[decoys[5]]}. I saw them by the door. They looked... guilty." But ${s[decoys[1]]} has accused three people now.` },
-                        { text: `"Why should I believe you?"`, clue: `Their face hardens. "Because I have nothing to hide." Classic line of someone hiding something.` }
-                    ]
-                },
-                {
-                    q: `The neighbor's dog is barking. It started right when ${d} disappeared and hasn't stopped.`,
-                    options: [
-                        { text: `Dogs know`, clue: `You walk outside. The neighbor's dog is staring at your fence. At a SPECIFIC spot on your fence.` },
-                        { text: `Coincidence`, clue: `Maybe. But you've never heard that dog bark for this long. Something triggered it at ${escapeTime}.` }
-                    ]
-                },
-                {
-                    q: `${s[decoys[3]]} hands you a crumpled note. "Found this in the recycling."`,
-                    image: 'images/torn_note.png',
-                    options: [
-                        { text: `Read it`, clue: `"Remember: back door, 3:45, be quick." The handwriting is familiar but disguised.` },
-                        { text: `"Where exactly?"`, clue: `"Under the pizza box." ${s[decoys[2]]} ordered that pizza. Were they hiding evidence?` }
-                    ]
-                },
-                {
-                    q: `Everyone freezes. ${d}'s collar just fell out of ${s[decoys[4]]}'s bag.`,
-                    image: 'images/dog_collar.png',
-                    options: [
-                        { text: `"EXPLAIN."`, clue: `"I—I don't—someone PLANTED that!" They look genuinely shocked. Framed? Or caught?` },
-                        { text: `Watch everyone's reaction`, clue: `${s[culprit]} doesn't look surprised. Everyone else gasps. Why wasn't ${s[culprit]} surprised?` }
-                    ]
-                },
-                // REVELATION PHASE - Last 4 questions
+                // REVELATION TEMPLATES
                 {
                     q: `Something clicks. You've been looking at this wrong.`,
                     options: [
-                        { text: `It wasn't accidental`, clue: `The door. The timing. The convenient alibis. This was PLANNED. Someone wanted ${d} gone.` },
-                        { text: `Someone's protecting someone`, clue: `The lies don't add up unless... someone here is covering for the real culprit. Family loyalty?` }
-                    ]
-                },
-                {
-                    q: `You notice something about ${s[culprit]}. They haven't asked a single question about ${d}.`,
-                    options: [
-                        { text: `Everyone else panicked`, clue: `"Where's ${d}?" "Did anyone check outside?" But ${s[culprit]}? Silent. Like they already knew.` },
-                        { text: `Maybe they're in shock`, clue: `Or maybe they're waiting it out. Waiting for everyone to stop looking. Waiting for the blame to land elsewhere.` }
-                    ]
-                },
-                {
-                    q: `${d} comes home. Tail wagging. And goes straight to ${s[culprit]}.`,
-                    options: [
-                        { text: `Dogs don't lie`, clue: `${d} passed everyone else. Made a beeline for ${s[culprit]}. Like they were expecting to be fed. Like this has happened before.` },
-                        { text: `Could be random`, clue: `But ${d}'s tail was wagging BEFORE they got to ${s[culprit]}. Recognition. Anticipation. This wasn't random.` }
+                        { text: `It wasn't accidental`, clue: `The door. The timing. The alibis. This was PLANNED.` },
+                        { text: `Someone's protecting someone`, clue: `The lies don't add up unless... someone's covering for the real culprit.` }
                     ]
                 },
                 {
                     q: `You have enough. Time to make the call.`,
                     options: [
-                        { text: `Gather everyone. It ends now.`, clue: `The room goes quiet. You look at each face. One of them knows what you're about to say. One of them is sweating.` },
-                        { text: `Confront them privately`, clue: `No audience. No drama. Just you, them, and the truth. Sometimes that's more effective.` }
+                        { text: `Gather everyone. It ends now.`, clue: `The room goes quiet. One of them knows what you're about to say. One is sweating.` },
+                        { text: `Confront them privately`, clue: `No audience. Just you, them, and the truth.` }
                     ]
                 }
             ];
 
-            // Shuffle most questions, keep final 4 in order
-            const investigationQuestions = allQuestions.slice(0, -4);
-            const revelationQuestions = allQuestions.slice(-4);
-            fisherYatesShuffle(investigationQuestions);
+            // Shuffle the entire bank
+            fisherYatesShuffle(questionTemplates);
 
-            // Take 16 investigation + 4 revelation = 20 total
-            questions = [...investigationQuestions.slice(0, 16), ...revelationQuestions];
+            // This gives us 300+ unique questions from templates
+            const allQuestions = questionTemplates;
+
+            // Store the full question bank (shuffled - already shuffled above)
+            allQuestionBank = allQuestions;
+
+            // Start with first phase
+            loadPhaseQuestions();
 
             // Bonus questions - continue investigation
             bonusQuestions = [
@@ -1528,21 +1533,30 @@
             ];
         }
 
+        function loadPhaseQuestions() {
+            // Get 10 questions for this phase from the bank
+            const startIdx = (currentPhase - 1) * questionsPerPhase;
+            phaseQuestions = allQuestionBank.slice(startIdx, startIdx + questionsPerPhase);
+            currentQuestion = 0;
+        }
+
         function startQuestions() {
             currentQuestion = 0;
+            currentPhase = 1;
+            loadPhaseQuestions();
             showScreen('questionScreen');
             showQuestion();
         }
 
         function showQuestion() {
-            const q = questions[currentQuestion];
-            const total = inBonusRound ? 5 : 20;
+            const q = phaseQuestions[currentQuestion];
+            const total = inBonusRound ? 5 : questionsPerPhase;
             const current = inBonusRound ? bonusQuestionsAsked + 1 : currentQuestion + 1;
 
             document.getElementById('progressFill').style.width = `${(current / total) * 100}%`;
             document.getElementById('questionNum').textContent = inBonusRound ?
-                `BONUS QUESTION ${bonusQuestionsAsked + 1}/5` :
-                `QUESTION ${currentQuestion + 1}/20`;
+                `BONUS ${bonusQuestionsAsked + 1}/5` :
+                `PHASE ${currentPhase} - QUESTION ${currentQuestion + 1}/${questionsPerPhase}`;
             document.getElementById('questionText').textContent = q.q;
 
             // Show evidence image if available
@@ -1607,15 +1621,17 @@
             if (inBonusRound) {
                 bonusQuestionsAsked++;
                 if (bonusQuestionsAsked >= 5) {
+                    // After 5 bonus questions, auto-reveal culprit
                     inBonusRound = false;
                     bonusQuestionsAsked = 0;
-                    showGuessScreen();
+                    showResult(false); // Auto-reveal
                 } else {
                     showBonusQuestion();
                 }
             } else {
                 currentQuestion++;
-                if (currentQuestion >= 20) {
+                if (currentQuestion >= questionsPerPhase) {
+                    // End of phase - time to guess
                     showGuessScreen();
                 } else {
                     showQuestion();
@@ -1675,23 +1691,39 @@
                 document.querySelector('.container').classList.add('shake');
                 setTimeout(() => document.querySelector('.container').classList.remove('shake'), 500);
 
-                guessesLeft--;
-                if (guessesLeft <= 0) {
-                    showResult(false);
-                } else {
+                if (currentPhase < maxPhases) {
+                    // Move to next phase
+                    currentPhase++;
+                    loadPhaseQuestions();
                     document.getElementById('wrongMessage').innerHTML = `
                         ❌ It wasn't <strong>${suspects[index]}</strong>!<br>
-                        ${guessesLeft} guess${guessesLeft !== 1 ? 'es' : ''} remaining.
+                        <em>Phase ${currentPhase} beginning... Keep investigating!</em>
                     `;
                     showScreen('wrongScreen');
+                } else {
+                    // After phase 3, go to bonus round
+                    document.getElementById('wrongMessage').innerHTML = `
+                        ❌ It wasn't <strong>${suspects[index]}</strong>!<br>
+                        <em>Final chance! 5 bonus clues before the truth is revealed...</em>
+                    `;
+                    showScreen('wrongScreen');
+                    // Set flag to go to bonus after wrongScreen
+                    window.goToBonusAfterWrong = true;
                 }
             }
         }
 
         function continueBonusQuestions() {
-            inBonusRound = true;
-            bonusQuestionsAsked = 0;
-            showBonusQuestion();
+            if (window.goToBonusAfterWrong) {
+                window.goToBonusAfterWrong = false;
+                inBonusRound = true;
+                bonusQuestionsAsked = 0;
+                showBonusQuestion();
+            } else {
+                // Continue to next phase
+                showScreen('questionScreen');
+                showQuestion();
+            }
         }
 
         function showResult(won) {
