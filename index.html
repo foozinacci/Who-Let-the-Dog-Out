@@ -1226,10 +1226,118 @@
                 { id: 'normal', label: 'Acted normally', clue: 'behaved as if nothing happened' }
             ];
 
+            // ===== ATOMIC FACTS POOL =====
+            const LOCATIONS = ['garage', 'mudroom', 'kitchen', 'living room', 'backyard', 'hallway', 'bedroom', 'basement', 'front porch', 'laundry room'];
+            const OBJECTS = ['phone', 'flashlight', 'key ring', 'dog leash', 'treat bag', 'water bowl', 'jacket', 'umbrella', 'tool box', 'bag'];
+            const TIMES = ['6:41', '6:44', '6:47', '6:49', '6:52', '6:55', '6:58', '7:01'];
+            const SOUNDS = ['metal clink', 'door creak', 'footsteps', 'gate latch', 'dog bark', 'phone buzz', 'car engine', 'water running'];
+            const EMOTIONS = ['nervous', 'calm', 'defensive', 'angry', 'tearful', 'distracted', 'jumpy', 'evasive'];
+
+            // ===== INTERROGATION WHEEL (8 types) =====
+            const QUESTION_TYPES = [
+                'timeline',      // "Exactly when did that start/end?"
+                'object',        // "What did you touch/carry/open?"
+                'route',         // "How did you get there? Which door?"
+                'witness',       // "Who saw/heard you?"
+                'motive',        // "Why would you care the dog got out?"
+                'knowledge',     // "Describe something only someone present would know"
+                'contradiction', // "Earlier you said X; now you said Y"
+                'opportunity'    // "What were the dog's barriers at that moment?"
+            ];
+
             function generateSuspectProfiles() {
                 suspectProfiles = [];
+                const pick = (arr) => arr[trueRandom(arr.length)];
+                const pickTwo = (arr) => { const a = [...arr]; fisherYatesShuffle(a); return [a[0], a[1]]; };
+                const pickRoute = () => { const locs = [...LOCATIONS]; fisherYatesShuffle(locs); return locs.slice(0, 3); };
+
                 for (let i = 0; i < 7; i++) {
+                    const isCulprit = (i === culprit);
+                    const route = pickRoute();
+                    const objects = pickTwo(OBJECTS);
+                    const timeStart = TIMES[trueRandom(4)]; // Earlier times
+                    const timeCritical = TIMES[4 + trueRandom(4)]; // Later times
+                    const witnessIdx = (i + 1 + trueRandom(5)) % 7;
+
+                    // Generate the lie and truth
+                    const claimedLocation = route[0];
+                    const actualLocation = isCulprit ? 'near the back gate' : route[1];
+                    const secret = isCulprit
+                        ? `moved the spare key to unlock the gate`
+                        : pick([`was on a private phone call`, `was sneaking a snack`, `was avoiding someone`, `was taking a break`, `was hiding from chores`]);
+                    const lie = isCulprit
+                        ? `claims they never left the ${claimedLocation}`
+                        : `says they were in the ${claimedLocation} the whole time`;
+                    const contradiction = isCulprit
+                        ? `The ${route[1]} motion sensor triggered at ${timeCritical}—and only they could have set it off`
+                        : `${suspects[witnessIdx]} saw them in the ${route[1]} at ${timeCritical}`;
+
+                    // ===== REVEAL LADDER (5 tiers) =====
+                    const revealTiers = [
+                        // Tier 0: Surface alibi (Phase 1)
+                        {
+                            phase: 1,
+                            scene: `In the ${route[0]}'s dim light, ${suspects[i]} ${pick(['squints at their phone', 'shuffles through papers', 'checks the window', 'paces slowly'])}. They seem ${pick(EMOTIONS)}.`,
+                            question: `${suspects[i]} claims they were in the ${route[0]} around ${timeStart}.`,
+                            reveal: `"I was just ${pick(['looking for something', 'taking a break', 'checking my phone', 'waiting for a call'])}. Nothing special."`
+                        },
+                        // Tier 1: Specific detail (Phase 1 follow-up)
+                        {
+                            phase: 1,
+                            scene: `${suspects[i]} ${pick(['glances at their watch', 'fidgets with their sleeve', 'avoids your gaze', 'shifts their weight'])}. Something's off.`,
+                            question: `You press ${suspects[i]} for specifics about what they were doing at ${timeStart}.`,
+                            reveal: `"Fine. I was checking a ${pick(['missed call', 'text message', 'notification'])} on my phone. I used the ${objects[0]} because ${pick(['the light was out', 'I needed to see better', 'it was getting dark'])}."`
+                        },
+                        // Tier 2: Timeline anchor (Phase 2)
+                        {
+                            phase: 2,
+                            scene: `A ${pick(SOUNDS)} echoes in your memory. ${suspects[i]}'s alibi has gaps.`,
+                            question: `You ask ${suspects[i]} to account for the time between ${timeStart} and ${timeCritical}.`,
+                            reveal: isCulprit
+                                ? `"I... I heard the ${pick(['gate', 'side door', 'back door'])} around ${timeCritical}. I thought someone else checked it."`
+                                : `"I stepped out briefly to ${pick(['get some air', 'make a call', 'check on something'])}. I came right back."`
+                        },
+                        // Tier 3: Contradiction or admission (Phase 2/3)
+                        {
+                            phase: 2,
+                            scene: `The ${route[1]} sensor log glows on your phone. The timestamp: ${timeCritical}.`,
+                            question: `You confront ${suspects[i]} about the ${route[1]} motion sensor triggering at ${timeCritical}.`,
+                            reveal: isCulprit
+                                ? `Their face goes pale. "That... that must be wrong. I never went to the ${route[1]}." But the sensor doesn't lie.`
+                                : `"Okay, yes, I was there briefly. But I came right back! I didn't see anything unusual."`
+                        },
+                        // Tier 4: Culprit-facing disclosure (Phase 3)
+                        {
+                            phase: 3,
+                            scene: isCulprit
+                                ? `The pieces click together. ${suspects[i]}'s hands are trembling.`
+                                : `${suspects[i]} looks uncomfortable but maintains eye contact.`,
+                            question: `You reveal you know about the ${objects[1]} and the ${route[2]}.`,
+                            reveal: isCulprit
+                                ? `${suspects[i]} breaks. "I... I moved the spare key. I unlocked the gate. I didn't think ${dog} would actually leave! I just... I was ${suspectProfiles[i]?.motive?.clue || 'frustrated'}."`
+                                : `"Look, I admit I was ${secret}. But I didn't let the dog out. Check ${suspects[culprit]}'s story—something doesn't add up with them."`
+                        }
+                    ];
+
                     suspectProfiles.push({
+                        index: i,
+                        isCulprit: isCulprit,
+                        // Facts
+                        route: route,
+                        objects: objects,
+                        timeStart: timeStart,
+                        timeCritical: timeCritical,
+                        witnessIndex: witnessIdx,
+                        // Story elements
+                        secret: secret,
+                        lie: lie,
+                        contradiction: contradiction,
+                        emotion: pick(EMOTIONS),
+                        // Reveal system
+                        revealTiers: revealTiers,
+                        currentTier: 0,
+                        questionsAsked: [], // Track which question types have been used
+                        // Original attributes
                         motive: MOTIVES[trueRandom(MOTIVES.length)],
                         method: METHODS[trueRandom(METHODS.length)],
                         awareness: AWARENESS[trueRandom(AWARENESS.length)],
@@ -1237,10 +1345,46 @@
                         aftermath: AFTERMATH[trueRandom(AFTERMATH.length)]
                     });
                 }
-                console.log('=== SUSPECT PROFILES GENERATED ===');
+
+                console.log('=== SUSPECT PROFILES GENERATED (Facts + Reveal Ladder) ===');
                 suspects.forEach((name, i) => {
-                    console.log(`${name}: ${suspectProfiles[i].motive.label}, ${suspectProfiles[i].method.label}, ${suspectProfiles[i].aftermath.label}`);
+                    const p = suspectProfiles[i];
+                    console.log(`${name}${p.isCulprit ? ' [CULPRIT]' : ''}: Route: ${p.route.join(' → ')}, Secret: ${p.secret}`);
                 });
+            }
+
+            // Get next reveal for a suspect (advances their tier)
+            function getNextReveal(suspectIndex) {
+                const profile = suspectProfiles[suspectIndex];
+                if (!profile) return null;
+
+                const tier = Math.min(profile.currentTier, profile.revealTiers.length - 1);
+                const reveal = profile.revealTiers[tier];
+
+                // Advance tier for next time
+                if (profile.currentTier < profile.revealTiers.length - 1) {
+                    profile.currentTier++;
+                }
+
+                return reveal;
+            }
+
+            // Get a question type that hasn't been used recently for this suspect
+            function getNextQuestionType(suspectIndex) {
+                const profile = suspectProfiles[suspectIndex];
+                if (!profile) return QUESTION_TYPES[0];
+
+                // Find unused types
+                const unused = QUESTION_TYPES.filter(t => !profile.questionsAsked.includes(t));
+                if (unused.length === 0) {
+                    // Reset if all used
+                    profile.questionsAsked = [];
+                    return QUESTION_TYPES[trueRandom(QUESTION_TYPES.length)];
+                }
+
+                const chosen = unused[trueRandom(unused.length)];
+                profile.questionsAsked.push(chosen);
+                return chosen;
             }
 
             let questions = [];
