@@ -1145,19 +1145,40 @@
             });
         }
 
+        // True random using crypto API when available
+        function trueRandom(max) {
+            if (window.crypto && window.crypto.getRandomValues) {
+                const array = new Uint32Array(1);
+                window.crypto.getRandomValues(array);
+                return array[0] % max;
+            }
+            // Fallback with multiple random calls for better entropy
+            return Math.floor((Math.random() + Math.random() + Math.random()) / 3 * max);
+        }
+
+        // Fisher-Yates shuffle for true randomness
+        function fisherYatesShuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = trueRandom(i + 1);
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
         function startGame() {
             detective = getVal('detectiveName', 'Detective');
             dog = getVal('dogName', 'Tiny');
 
-            // Pool of random default names
-            const namePool = [
+            // Pool of random default names - shuffled properly
+            const namePool = fisherYatesShuffle([
                 'Mom', 'Dad', 'Brother', 'Sister', 'Grandma', 'Grandpa', 'Uncle', 'Aunt',
                 'The Neighbor', 'The Mailman', 'The Dog Walker', 'The Babysitter', 'The Gardener',
                 'Best Friend', 'The Cousin', 'Roommate', 'The Chef', 'The Butler',
                 'A Stranger', 'The Delivery Guy', 'The Handyman', 'The Pet Sitter',
                 'The Teacher', 'The Coach', 'The Ex', 'The Boss', 'The Intern',
                 'Karen', 'Kevin', 'Chad', 'Becky', 'Steve', 'Linda', 'Gary', 'Susan'
-            ].sort(() => Math.random() - 0.5);
+            ]);
 
             // Get all suspects with randomized defaults
             let tempSuspects = [
@@ -1170,14 +1191,18 @@
                 getVal('suspect7', namePool[6])
             ];
 
-            // Shuffle the suspects array so order is always different
-            suspects = tempSuspects.sort(() => Math.random() - 0.5);
+            // Shuffle the suspects array with Fisher-Yates
+            suspects = fisherYatesShuffle(tempSuspects);
 
-            // Now pick culprit from shuffled array
-            culprit = Math.floor(Math.random() * 7);
+            // Pick culprit using true random
+            culprit = trueRandom(7);
+
+            // Log for debugging (can remove later)
+            console.log('Culprit index:', culprit, 'Name:', suspects[culprit]);
+
             escapeTime = generateEscapeTime();
             escapeDay = generateEscapeDay();
-            storyVariant = Math.floor(Math.random() * 5);
+            storyVariant = trueRandom(5);
             assignCharacterRoles();
 
             generateQuestions();
