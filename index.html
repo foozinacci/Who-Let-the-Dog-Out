@@ -1573,194 +1573,148 @@
                 const s = suspects;
                 const d = dog;
 
-                // Create decoy suspects (not the real culprit) for misdirection
-                const decoys = [0, 1, 2, 3, 4, 5, 6].filter(i => i !== culprit);
-                fisherYatesShuffle(decoys);
-
-                // EXTENSIVE QUESTION BANK - 300+ unique question objects
-                const locations = ['kitchen', 'living room', 'backyard', 'garage', 'hallway', 'bathroom', 'bedroom', 'basement', 'front porch', 'laundry room'];
-                const times = ['3:30 PM', '3:35 PM', '3:40 PM', '3:45 PM', '3:47 PM', '3:50 PM', '3:52 PM', '3:55 PM', '3:58 PM', '4:00 PM'];
-                const items = ['phone', 'jacket', 'keys', 'wallet', 'watch', 'shoes', 'bag', 'book', 'glasses', 'hat', 'scarf', 'headphones'];
-                const actions = ['pacing', 'whispering', 'texting', 'looking out the window', 'checking their phone', 'cleaning frantically', 'avoiding eye contact', 'biting their nails', 'fidgeting', 'staring at the door'];
-                const evidenceTypes = ['muddy footprint', 'torn piece of paper', 'dog treat crumb', 'strand of hair', 'fingerprint', 'scratch mark', 'water droplet', 'grass stain', 'paw print', 'food wrapper'];
-                const excuses = [`"I was in the bathroom"`, `"I was on a call"`, `"I was napping"`, `"I was watching TV"`, `"I was reading"`, `"I was in my room"`, `"I was outside briefly"`, `"I don't remember"`, `"I was eating"`, `"I was showering"`];
-                const emotions = ['nervous', 'defensive', 'angry', 'tearful', 'suspiciously calm', 'fidgety', 'pale', 'sweating'];
-
-                const allQuestions = [];
-
-                // Image pools for different question types
+                // Image pools
                 const witnessImages = ['images/scene_investigation_room.png', 'images/interrogation.png'];
                 const evidenceImages = ['images/evidence_paw_prints.png', 'images/evidence_torn_note.png', 'images/paw_prints.png', 'images/evidence_dog_collar.png'];
-                const behaviorImages = ['images/scene_investigation_room.png', 'images/security_camera.png'];
                 const confrontationImages = ['images/scene_dramatic_reveal.png', 'images/dramatic_reveal.png'];
-                const phoneImages = ['images/evidence_phone_text.png', 'images/security_camera.png'];
                 const escapeImages = ['images/scene_backyard_escape.png', 'images/evidence_dog_collar.png', 'images/dog_collar.png'];
+                const phoneImages = ['images/evidence_phone_text.png', 'images/security_camera.png'];
 
                 const pickImage = (arr) => arr[trueRandom(arr.length)];
+                const pick = (arr) => arr[trueRandom(arr.length)];
 
-                // === GENERATE WITNESS QUESTIONS (decoy × decoy = 30) ===
-                for (let i = 0; i < decoys.length; i++) {
-                    for (let j = 0; j < decoys.length; j++) {
-                        if (i !== j) {
-                            allQuestions.push({
-                                q: `${s[decoys[i]]} pulls you aside. "I need to tell you something about ${s[decoys[j]]}."`,
+                // ===== PHASE-BASED QUESTION GENERATION =====
+                // Phase 1: Surface alibis + red herrings (tiers 0-1)
+                // Phase 2: Timeline gaps + contradictions (tiers 2-3)  
+                // Phase 3: Revelations + final confrontation (tier 4)
+
+                const phase1Questions = [];
+                const phase2Questions = [];
+                const phase3Questions = [];
+
+                // Generate questions from each suspect's reveal ladder
+                for (let i = 0; i < 7; i++) {
+                    const profile = suspectProfiles[i];
+                    if (!profile) continue;
+
+                    // PHASE 1: Tier 0 and Tier 1 reveals
+                    for (let tier = 0; tier <= 1; tier++) {
+                        const reveal = profile.revealTiers[tier];
+                        if (reveal) {
+                            phase1Questions.push({
+                                q: reveal.scene,
                                 image: pickImage(witnessImages),
+                                suspectIndex: i,
+                                tier: tier,
                                 options: [
-                                    { text: `"What about them?"`, clue: `"I saw them near the back door at ${times[trueRandom(times.length)]}. They were acting strange."` },
-                                    { text: `"Why are you telling me this?"`, clue: `"Because... I think they might be involved. But don't tell them I said anything."` }
+                                    { text: `Ask ${s[i]} directly`, clue: reveal.reveal },
+                                    { text: `Observe silently`, clue: `${s[i]} ${pick(['shifts uncomfortably', 'glances at the door', 'avoids eye contact', 'checks their phone'])}. They know you're watching.` }
                                 ]
                             });
                         }
                     }
-                }
 
-                // === GENERATE BEHAVIOR QUESTIONS (decoy × action × location = 600, take 50) ===
-                for (let i = 0; i < decoys.length; i++) {
-                    for (let a = 0; a < actions.length; a++) {
-                        for (let l = 0; l < Math.min(locations.length, 5); l++) {
-                            allQuestions.push({
-                                q: `You catch ${s[decoys[i]]} ${actions[a]} in the ${locations[l]}.`,
-                                image: pickImage(behaviorImages),
+                    // PHASE 2: Tier 2 and Tier 3 reveals (timeline + contradictions)
+                    for (let tier = 2; tier <= 3; tier++) {
+                        const reveal = profile.revealTiers[tier];
+                        if (reveal) {
+                            phase2Questions.push({
+                                q: reveal.scene,
+                                image: tier === 3 ? pickImage(phoneImages) : pickImage(evidenceImages),
+                                suspectIndex: i,
+                                tier: tier,
                                 options: [
-                                    { text: `"What are you doing?"`, clue: `"Nothing! Why are you always watching me?" Their ${emotions[trueRandom(emotions.length)]} tone says otherwise.` },
-                                    { text: `Observe without speaking`, clue: `They don't notice you. After a moment, they check the back door. Then return to ${actions[a]}.` }
+                                    { text: `Confront them`, clue: reveal.reveal },
+                                    {
+                                        text: `Note the discrepancy`, clue: profile.isCulprit
+                                            ? `This doesn't add up. ${s[i]}'s story has a hole at ${profile.timeCritical}.`
+                                            : `${s[i]} seems genuinely confused. Maybe they're not the one.`
+                                    }
                                 ]
                             });
                         }
                     }
-                }
 
-                // === GENERATE EVIDENCE QUESTIONS (location × evidence = 100) ===
-                for (let l = 0; l < locations.length; l++) {
-                    for (let e = 0; e < evidenceTypes.length; e++) {
-                        allQuestions.push({
-                            q: `There's a ${evidenceTypes[e]} in the ${locations[l]}. Fresh.`,
-                            image: pickImage(evidenceImages),
+                    // PHASE 3: Tier 4 final revelations (culprit gets the big moment)
+                    const tier4 = profile.revealTiers[4];
+                    if (tier4) {
+                        phase3Questions.push({
+                            q: tier4.scene,
+                            image: pickImage(confrontationImages),
+                            suspectIndex: i,
+                            tier: 4,
+                            isCulpritReveal: profile.isCulprit,
                             options: [
-                                { text: `Examine it`, clue: `This was left recently. Within the last hour. Someone was here.` },
-                                { text: `Ask who was in the ${locations[l]}`, clue: `${s[decoys[trueRandom(decoys.length)]]}: "Not me." But their shoes have ${locations[l] === 'backyard' ? 'grass' : 'dust'} on them.` }
+                                { text: `"Tell me the truth."`, clue: tier4.reveal },
+                                {
+                                    text: `Show them the evidence`, clue: profile.isCulprit
+                                        ? `The ${profile.objects[1]}. The ${profile.route[1]} sensor. The timeline. ${s[i]}'s face crumbles.`
+                                        : `${s[i]} looks relieved. "Finally. Ask ${s[culprit]}. Something's not right with them."`
+                                }
                             ]
                         });
                     }
                 }
 
-                // === GENERATE TIMELINE QUESTIONS (time × decoy × excuse = 60) ===
-                for (let t = 0; t < times.length; t++) {
-                    for (let i = 0; i < decoys.length; i++) {
-                        allQuestions.push({
-                            q: `You ask ${s[decoys[i]]} where they were at ${times[t]}.`,
-                            image: pickImage(witnessImages),
-                            options: [
-                                { text: `Press for details`, clue: `They claim ${excuses[trueRandom(excuses.length)]}. But ${s[decoys[(i + 1) % decoys.length]]} says they saw them elsewhere.` },
-                                { text: `Check their alibi`, clue: `The smart home log shows motion in the hallway at ${times[t]}. Someone moved toward the door.` }
-                            ]
-                        });
-                    }
-                }
-
-                // === GENERATE CONFRONTATION QUESTIONS (decoy × decoy × location = 50) ===
-                for (let i = 0; i < decoys.length; i++) {
-                    for (let j = i + 1; j < decoys.length; j++) {
-                        for (let l = 0; l < Math.min(locations.length, 4); l++) {
-                            allQuestions.push({
-                                q: `${s[decoys[i]]} and ${s[decoys[j]]} are arguing in the ${locations[l]}.`,
-                                image: pickImage(confrontationImages),
-                                options: [
-                                    { text: `Intervene`, clue: `"THEY were supposed to watch ${d}!" "I never agreed to that!" The blame game begins.` },
-                                    { text: `Listen in`, clue: `"If you tell anyone what really happened, I swear..." They spot you. Instant silence.` }
-                                ]
-                            });
-                        }
-                    }
-                }
-
-                // === GENERATE ITEM DISCOVERY QUESTIONS (item × location = 40) ===
-                for (let i = 0; i < items.length; i++) {
-                    for (let l = 0; l < Math.min(locations.length, 4); l++) {
-                        allQuestions.push({
-                            q: `You find a ${items[i]} on the floor in the ${locations[l]}. It doesn't belong there.`,
-                            image: pickImage(evidenceImages),
-                            options: [
-                                { text: `Check whose it is`, clue: `${s[decoys[trueRandom(decoys.length)]]} claims it. But why was it near the back door?` },
-                                { text: `Look for ${d}'s fur`, clue: `There it is—${d}'s fur on the ${items[i]}. Whoever owns this was near ${d} recently.` }
-                            ]
-                        });
-                    }
-                }
-
-                // === GENERATE PHONE QUESTIONS (decoy × emotion = 48) ===
-                for (let i = 0; i < decoys.length; i++) {
-                    for (let e = 0; e < emotions.length; e++) {
-                        allQuestions.push({
-                            q: `${s[decoys[i]]}'s phone buzzes. They look ${emotions[e]}.`,
-                            image: pickImage(phoneImages),
-                            options: [
-                                { text: `"Who is it?"`, clue: `"Nobody!" They delete the message. "Just spam." But their hands are shaking.` },
-                                { text: `Note their reaction`, clue: `Whatever that message said, it changed their demeanor. They won't meet your eyes now.` }
-                            ]
-                        });
-                    }
-                }
-
-                // === GENERATE ACCUSATION QUESTIONS (decoy accusing decoy = 30) ===
-                for (let i = 0; i < decoys.length; i++) {
-                    for (let j = 0; j < decoys.length; j++) {
-                        if (i !== j) {
-                            allQuestions.push({
-                                q: `${s[decoys[i]]} points at ${s[decoys[j]]}. "It was THEM. I know it."`,
-                                image: pickImage(confrontationImages),
-                                options: [
-                                    { text: `"What's your proof?"`, clue: `"I... I just know! They were acting weird all day!" Weak evidence. Strong emotion.` },
-                                    { text: `Watch ${s[decoys[j]]}'s reaction`, clue: `They look ${emotions[trueRandom(emotions.length)]}. Guilty? Or shocked at the accusation?` }
-                                ]
-                            });
-                        }
-                    }
-                }
-
-                // === CULPRIT HINT QUESTIONS (8 variations) ===
-                const culpritHints = [
-                    { q: `Wait. Where's ${s[culprit]}?`, opts: [`Look for them`, `You find them alone, staring out a window. They flinch when they see you.`, `Ask around`, `${s[decoys[0]]}: "Their room?" ${s[decoys[1]]}: "Outside." Which is it?`] },
-                    { q: `${s[culprit]} has been oddly quiet.`, opts: [`Notice the silence`, `Everyone else is panicking. ${s[culprit]}? Calm. Too calm.`, `Ask if they're okay`, `"I'm fine." But their voice wavers.`] },
-                    { q: `${s[culprit]} hasn't asked about ${d} once.`, opts: [`Interesting`, `Everyone else: "Where's ${d}?" But ${s[culprit]}? Silent. Like they already know.`, `Confront them`, `"Aren't you worried?" A long pause. "Of course."`] },
-                    { q: `${d} comes home and runs straight to ${s[culprit]}.`, opts: [`Dogs know`, `${d} passed everyone. Made a beeline. Like greeting an accomplice.`, `Coincidence?`, `${d}'s tail was wagging BEFORE reaching ${s[culprit]}.`] },
-                    { q: `${s[culprit]} keeps checking the clock.`, opts: [`Why?`, `Like they're waiting for something. Or counting down.`, `Ask them`, `"What? No reason." But they checked it again.`] },
-                    { q: `${s[culprit]}'s shoes are clean. Too clean.`, opts: [`They were supposedly outside`, `If they went to the backyard, where's the dirt?`, `Check the doormat`, `Fresh grass stains. Someone wiped their shoes recently.`] },
-                    { q: `${s[culprit]} knows details they shouldn't.`, opts: [`"How do you know that?"`, `"I... someone told me." Who? When?`, `Note it`, `They mentioned the ${escapeTime} before anyone else did.`] },
-                    { q: `Something's off about ${s[culprit]}'s alibi.`, opts: [`Cross-reference`, `They said they were in their room. But ${s[decoys[0]]} saw them downstairs.`, `Let it slide`, `For now. But you'll remember this.`] }
-                ];
-                culpritHints.forEach(h => {
-                    allQuestions.push({
-                        q: h.q,
-                        image: pickImage(escapeImages),
-                        options: [
-                            { text: h.opts[0], clue: h.opts[1] },
-                            { text: h.opts[2], clue: h.opts[3] }
-                        ]
-                    });
-                });
-
-                // === REVELATION QUESTIONS (always at end) ===
-                const revelationQuestions = [
-                    { q: `Something clicks. You've been looking at this wrong.`, image: 'images/scene_dramatic_reveal.png', options: [{ text: `It was planned`, clue: `The door. The timing. The alibis. This wasn't an accident.` }, { text: `Someone's covering`, clue: `The lies protect someone. Family loyalty runs deep.` }] },
-                    { q: `You gather all the evidence in your mind.`, image: 'images/evidence_paw_prints.png', options: [{ text: `The timeline`, clue: `One person has no alibi for the critical 4 minutes.` }, { text: `The motive`, clue: `One person benefits from ${d} being "lost."` }] },
-                    { q: `It's time. You know who did it.`, image: 'images/scene_dramatic_reveal.png', options: [{ text: `Confront them now`, clue: `The room goes silent. One face goes pale.` }, { text: `Gather everyone first`, clue: `Maximum impact. Everyone will see the truth revealed.` }] }
+                // Add environmental/evidence discovery questions for variety
+                const environmentQuestions = [
+                    { q: `The back gate is swinging slightly. You examine the latch.`, image: pickImage(escapeImages), options: [{ text: `Check for prints`, clue: `Fresh fingerprints on the latch. Someone touched this in the last hour.` }, { text: `Test the mechanism`, clue: `It doesn't lock automatically. Someone had to deliberately unlatch it.` }] },
+                    { q: `${d}'s water bowl is in an unusual spot. Near the door.`, image: pickImage(evidenceImages), options: [{ text: `Who moved it?`, clue: `Everyone denies it. But the bowl moved sometime after lunch.` }, { text: `Check for clues on it`, clue: `A partial handprint in the condensation. Fresh.` }] },
+                    { q: `The treat bag is nearly empty. It was full this morning.`, image: pickImage(evidenceImages), options: [{ text: `Count the missing treats`, clue: `Enough gone to make a trail. Someone lured ${d} toward the door.` }, { text: `Ask who fed ${d}`, clue: `${s[culprit]}: "Not me." But there are crumbs on their sleeve.` }] },
+                    { q: `You find ${d}'s favorite toy hidden behind the couch.`, image: pickImage(evidenceImages), options: [{ text: `Why hidden?`, clue: `${d} never leaves this behind. Someone moved it deliberately.` }, { text: `Check for DNA`, clue: `Dog fur... and human hair. A match waiting to be confirmed.` }] },
+                    { q: `The security camera footage has a 4-minute gap.`, image: 'images/security_camera.png', options: [{ text: `When?`, clue: `Right around ${suspectProfiles[culprit]?.timeCritical || '6:50'}. Someone knew the blind spot.` }, { text: `Who has access?`, clue: `Three people know the camera password. ${s[culprit]} is one of them.` }] },
+                    { q: `A neighbor waves you over. "I saw something."`, image: pickImage(witnessImages), options: [{ text: `What did you see?`, clue: `"Someone in your backyard around ${suspectProfiles[culprit]?.timeCritical || '6:50'}. Tallish? I couldn't tell who."` }, { text: `Which direction?`, clue: `"They came from the side of the house. Then the dog ran right out the gate."` }] }
                 ];
 
-                // Shuffle main questions, append revelations at end
-                fisherYatesShuffle(allQuestions);
+                // Shuffle each phase's questions
+                fisherYatesShuffle(phase1Questions);
+                fisherYatesShuffle(phase2Questions);
+                fisherYatesShuffle(phase3Questions);
+                fisherYatesShuffle(environmentQuestions);
 
-                // Log question count and first 3 questions for debugging
-                console.log('=== QUESTION GENERATION DEBUG ===');
-                console.log('Generated ' + allQuestions.length + ' questions');
-                console.log('First 3 questions after shuffle:');
-                console.log('  1:', allQuestions[0]?.q?.substring(0, 50));
-                console.log('  2:', allQuestions[1]?.q?.substring(0, 50));
-                console.log('  3:', allQuestions[2]?.q?.substring(0, 50));
+                // Build final question bank: Phase 1 (10), Phase 2 (10), Phase 3 (10)
+                // Mix in environment questions throughout
+                const allQuestions = [];
 
-                // Store the full question bank (shuffled)
-                allQuestionBank = allQuestions;
-                console.log('allQuestionBank length:', allQuestionBank.length);
+                // Phase 1: 8 suspect reveals + 2 environment
+                for (let i = 0; i < 8 && i < phase1Questions.length; i++) {
+                    allQuestions.push(phase1Questions[i]);
+                }
+                for (let i = 0; i < 2 && i < environmentQuestions.length; i++) {
+                    allQuestions.push(environmentQuestions[i]);
+                }
+
+                // Phase 2: 8 suspect reveals + 2 environment
+                for (let i = 0; i < 8 && i < phase2Questions.length; i++) {
+                    allQuestions.push(phase2Questions[i]);
+                }
+                for (let i = 2; i < 4 && i < environmentQuestions.length; i++) {
+                    allQuestions.push(environmentQuestions[i]);
+                }
+
+                // Phase 3: 8 suspect reveals + 2 environment
+                for (let i = 0; i < 8 && i < phase3Questions.length; i++) {
+                    allQuestions.push(phase3Questions[i]);
+                }
+                for (let i = 4; i < 6 && i < environmentQuestions.length; i++) {
+                    allQuestions.push(environmentQuestions[i]);
+                }
+
+                // Shuffle within each phase block (first 10, second 10, third 10)
+                const finalQuestions = [
+                    ...fisherYatesShuffle(allQuestions.slice(0, 10)),
+                    ...fisherYatesShuffle(allQuestions.slice(10, 20)),
+                    ...fisherYatesShuffle(allQuestions.slice(20, 30))
+                ];
+
+                console.log('=== REVEAL LADDER QUESTION GENERATION ===');
+                console.log('Phase 1 questions:', phase1Questions.length);
+                console.log('Phase 2 questions:', phase2Questions.length);
+                console.log('Phase 3 questions:', phase3Questions.length);
+                console.log('Total in bank:', finalQuestions.length);
+
+                // Store the question bank
+                allQuestionBank = finalQuestions;
 
                 // Bonus questions - continue investigation
                 bonusQuestions = [
