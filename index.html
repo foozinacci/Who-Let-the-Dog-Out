@@ -1752,10 +1752,19 @@
 
             function showGuessScreen() {
                 document.getElementById('dogNameGuess').textContent = dog;
-                document.getElementById('guessesLeft').textContent = `⚠️ ${guessesLeft} guess${guessesLeft !== 1 ? 'es' : ''} remaining`;
 
-                const grid = suspects.map((s, i) =>
-                    `<div class="suspect-btn" onclick="makeGuess(${i})">${s}</div>`
+                // Phase-based messaging
+                const phasesLeft = maxPhases - currentPhase;
+                let message = '';
+                if (phasesLeft > 0) {
+                    message = `⚠️ Phase ${currentPhase} of ${maxPhases} - ${phasesLeft} more chance${phasesLeft !== 1 ? 's' : ''} after this!`;
+                } else {
+                    message = `⚠️ FINAL CHANCE! Get it wrong and you'll face bonus questions!`;
+                }
+                document.getElementById('guessesLeft').textContent = message;
+
+                const grid = suspects.map((name, i) =>
+                    `<div class="suspect-btn" onclick="makeGuess(${i})">${name}</div>`
                 ).join('');
                 document.getElementById('suspectsGrid').innerHTML = grid;
 
