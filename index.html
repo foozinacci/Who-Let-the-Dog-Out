@@ -661,6 +661,43 @@
             animation: pulseGlow 2s infinite, textReveal 0.5s ease;
         }
 
+        /* Evidence Image Styles */
+        .evidence-image {
+            width: 100%;
+            max-width: 350px;
+            height: auto;
+            border-radius: 12px;
+            border: 3px solid var(--neon-purple);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(168, 85, 247, 0.3);
+            margin: 1rem auto;
+            display: block;
+            animation: textReveal 0.6s ease forwards;
+        }
+
+        .evidence-container {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .evidence-caption {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .story-image {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 16px;
+            border: 4px solid var(--neon-pink);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(236, 72, 153, 0.3);
+            margin: 1.5rem auto;
+            display: block;
+            animation: textReveal 0.8s ease forwards;
+        }
+
         .result-title {
             font-family: 'Fredoka One', cursive;
             font-size: 2rem;
@@ -1270,11 +1307,17 @@
                  <p><em>${detective}, cut through the lies.</em></p>`
             ];
 
-            return openers[Math.floor(Math.random() * openers.length)] +
-                discoveries[Math.floor(Math.random() * discoveries.length)] +
+            // Story images
+            const storyImage = '<img src="images/crime_scene.png" alt="The crime scene" class="story-image">';
+            const posterImage = '<img src="images/missing_poster.png" alt="Missing dog poster" class="story-image">';
+
+            return openers[trueRandom(openers.length)] +
+                storyImage +
+                discoveries[trueRandom(discoveries.length)] +
                 dynamicsText +
-                twists[Math.floor(Math.random() * twists.length)] +
-                closers[Math.floor(Math.random() * closers.length)];
+                twists[trueRandom(twists.length)] +
+                posterImage +
+                closers[trueRandom(closers.length)];
         }
 
         function generateQuestions() {
@@ -1291,6 +1334,7 @@
                 // ACT 1: THE SETUP - Everyone has motive
                 {
                     q: `🔍 You examine the back door. What catches your eye?`,
+                    image: 'images/crime_scene.png',
                     options: [
                         { text: `Scratches on the handle`, clue: `Deep scratches... like someone was in a hurry. Or ${d} was trying to get back IN?` },
                         { text: `A partial footprint`, clue: `Too smudged to identify. Could be anyone. Could be everyone.` }
@@ -1298,6 +1342,7 @@
                 },
                 {
                     q: `${s[decoys[0]]} approaches you nervously. "I need to tell you something..."`,
+                    image: 'images/interrogation.png',
                     options: [
                         { text: `Listen closely`, clue: `"I... I saw ${s[decoys[1]]} near the door earlier. They looked suspicious." But ${s[decoys[0]]} won't make eye contact.` },
                         { text: `Ask why they're nervous`, clue: `${s[decoys[0]]} goes pale. "I'm not nervous! I just... I have allergies!" They clearly don't have allergies.` }
@@ -1333,6 +1378,7 @@
                 },
                 {
                     q: `You find a torn piece of paper with handwriting: "Don't forget to—" The rest is missing.`,
+                    image: 'images/torn_note.png',
                     options: [
                         { text: `Compare handwriting samples`, clue: `It matches ${s[decoys[2]]}'s handwriting! But they claim they've "never seen that paper before in their life."` },
                         { text: `Search for the other half`, clue: `You find it in the trash: "—lock the door after." WHO WROTE THIS?` }
@@ -1340,6 +1386,7 @@
                 },
                 {
                     q: `${s[decoys[3]]} has mud on their shoes. Fresh mud.`,
+                    image: 'images/paw_prints.png',
                     options: [
                         { text: `"Where were you?"`, clue: `"The garden!" But it hasn't rained in days. Where did the mud come from?` },
                         { text: `Check where the mud matches`, clue: `The mud matches the backyard... exactly where ${d} escaped from. Coincidence?` }
@@ -1348,6 +1395,7 @@
                 // ACT 2: THE MISDIRECTION - Everything points wrong
                 {
                     q: `🚨 BOMBSHELL: Security footage shows someone at the door at 3:45 PM... but the face is obscured!`,
+                    image: 'images/security_camera.png',
                     options: [
                         { text: `Analyze the clothing`, clue: `Blue hoodie. ${s[decoys[1]]}, ${s[decoys[4]]}, AND ${s[culprit]} all own blue hoodies. Dead end.` },
                         { text: `Check the height`, clue: `Medium height. That eliminates... nobody. Everyone in this house is medium height apparently.` }
@@ -1526,7 +1574,15 @@
                 `BONUS QUESTION ${bonusQuestionsAsked + 1}/5` :
                 `QUESTION ${currentQuestion + 1}/20`;
             document.getElementById('questionText').textContent = q.q;
-            document.getElementById('clueArea').innerHTML = '';
+
+            // Show evidence image if available
+            let imageHtml = '';
+            if (q.image) {
+                imageHtml = `<div class="evidence-container">
+                    <img src="${q.image}" alt="Evidence" class="evidence-image">
+                </div>`;
+            }
+            document.getElementById('clueArea').innerHTML = imageHtml;
 
             const optionsHtml = q.options.map((opt, i) =>
                 `<div class="option" onclick="selectAnswer(${i})">${opt.text}</div>`
@@ -1554,7 +1610,11 @@
                 playSFX('reveal');
             }
 
-            document.getElementById('clueArea').innerHTML = `<div class="${clueClass}">${selected.clue}</div>`;
+            // Keep image if present, add clue below
+            const existingImage = q.image ? `<div class="evidence-container">
+                <img src="${q.image}" alt="Evidence" class="evidence-image">
+            </div>` : '';
+            document.getElementById('clueArea').innerHTML = existingImage + `<div class="${clueClass}">${selected.clue}</div>`;
 
             cluesFound.push(selected.clue);
             updateNotebook('notebook');
