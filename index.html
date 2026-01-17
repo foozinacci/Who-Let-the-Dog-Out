@@ -1148,7 +1148,9 @@
         function startGame() {
             detective = getVal('detectiveName', 'Detective');
             dog = getVal('dogName', 'Tiny');
-            suspects = [
+
+            // Get all suspects
+            let tempSuspects = [
                 getVal('suspect1', 'Mom'),
                 getVal('suspect2', 'Dad'),
                 getVal('suspect3', 'Brother'),
@@ -1158,6 +1160,10 @@
                 getVal('suspect7', 'A Stranger')
             ];
 
+            // Shuffle the suspects array so order is always different
+            suspects = tempSuspects.sort(() => Math.random() - 0.5);
+
+            // Now pick culprit from shuffled array
             culprit = Math.floor(Math.random() * 7);
             escapeTime = generateEscapeTime();
             escapeDay = generateEscapeDay();
