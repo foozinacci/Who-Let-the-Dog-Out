@@ -1331,161 +1331,167 @@
             const decoys = [0, 1, 2, 3, 4, 5, 6].filter(i => i !== culprit);
             fisherYatesShuffle(decoys);
 
-            // EXTENSIVE QUESTION BANK GENERATOR - Creates 300+ unique combinations
+            // EXTENSIVE QUESTION BANK - 300+ unique question objects
             const locations = ['kitchen', 'living room', 'backyard', 'garage', 'hallway', 'bathroom', 'bedroom', 'basement', 'front porch', 'laundry room'];
-            const times = ['3:30 PM', '3:35 PM', '3:40 PM', '3:45 PM', '3:47 PM', '3:50 PM', '3:52 PM', '3:55 PM'];
-            const items = ['phone', 'jacket', 'keys', 'wallet', 'watch', 'shoes', 'bag', 'book', 'glasses', 'hat'];
-            const actions = ['pacing', 'whispering', 'texting', 'looking out the window', 'checking their phone', 'cleaning frantically', 'avoiding eye contact', 'biting their nails'];
-            const evidence = ['muddy footprint', 'torn piece of paper', 'dog treat crumb', 'strand of hair', 'fingerprint', 'scratch mark', 'water droplet', 'grass stain'];
-            const excuses = [`"I was in the bathroom"`, `"I was on a call"`, `"I was napping"`, `"I was watching TV"`, `"I was reading"`, `"I was in my room"`, `"I was outside briefly"`, `"I don't remember"`];
+            const times = ['3:30 PM', '3:35 PM', '3:40 PM', '3:45 PM', '3:47 PM', '3:50 PM', '3:52 PM', '3:55 PM', '3:58 PM', '4:00 PM'];
+            const items = ['phone', 'jacket', 'keys', 'wallet', 'watch', 'shoes', 'bag', 'book', 'glasses', 'hat', 'scarf', 'headphones'];
+            const actions = ['pacing', 'whispering', 'texting', 'looking out the window', 'checking their phone', 'cleaning frantically', 'avoiding eye contact', 'biting their nails', 'fidgeting', 'staring at the door'];
+            const evidenceTypes = ['muddy footprint', 'torn piece of paper', 'dog treat crumb', 'strand of hair', 'fingerprint', 'scratch mark', 'water droplet', 'grass stain', 'paw print', 'food wrapper'];
+            const excuses = [`"I was in the bathroom"`, `"I was on a call"`, `"I was napping"`, `"I was watching TV"`, `"I was reading"`, `"I was in my room"`, `"I was outside briefly"`, `"I don't remember"`, `"I was eating"`, `"I was showering"`];
+            const emotions = ['nervous', 'defensive', 'angry', 'tearful', 'suspiciously calm', 'fidgety', 'pale', 'sweating'];
 
-            const pick = arr => arr[trueRandom(arr.length)];
-            const pickTwo = arr => { const a = [...arr]; fisherYatesShuffle(a); return [a[0], a[1]]; };
+            const allQuestions = [];
 
-            // TEMPLATE GENERATORS - Each creates unique questions
-            const questionTemplates = [
-                // WITNESS TEMPLATES (60+ combinations)
-                ...decoys.map(i => ({
-                    q: `${s[i]} pulls you aside. "Can we talk? Privately?"`,
-                    options: [
-                        { text: `"What do you know?"`, clue: `They hesitate. "I saw something. But if I tell you, ${s[pick(decoys.filter(x => x !== i))]} will never forgive me."` },
-                        { text: `"Why privately?"`, clue: `"Because..." they look around nervously, "...someone here is lying about where they were."` }
-                    ]
-                })),
-                ...decoys.map(i => ({
-                    q: `${s[i]} is ${pick(actions)} in the ${pick(locations)}.`,
-                    options: [
-                        { text: `Watch them`, clue: `They don't know you're watching. Their behavior is... suspicious. Calculated.` },
-                        { text: `Confront them`, clue: `They jump. "${s[i]}!" you say. "Oh! You scared me!" Guilty conscience?` }
-                    ]
-                })),
-                ...decoys.map(i => ({
-                    q: `"I think I know who did it." ${s[i]} looks you dead in the eyes.`,
-                    options: [
-                        { text: `"Who?"`, clue: `"${s[pick(decoys.filter(x => x !== i))]}. I saw them by the door." But ${s[i]} has accused others before.` },
-                        { text: `"Why should I believe you?"`, clue: `Their face hardens. "Because I have nothing to hide." Classic deflection.` }
-                    ]
-                })),
-                // EVIDENCE TEMPLATES (50+ combinations)
-                ...locations.map(loc => ({
-                    q: `There's a ${pick(evidence)} in the ${loc}.`,
-                    options: [
-                        { text: `Examine it closely`, clue: `Fresh. Recent. Someone was here within the last hour.` },
-                        { text: `Ask who was there`, clue: `${s[pick(decoys)]}: "Not me." ${s[pick(decoys)]}: "I was there earlier, but not at that time."` }
-                    ]
-                })),
-                ...items.map(item => ({
-                    q: `${s[pick(decoys)]}'s ${item} is on the floor near the back door.`,
-                    options: [
-                        { text: `"How did this get here?"`, clue: `They claim they haven't been near the door all day. The ${item} says otherwise.` },
-                        { text: `Check for evidence`, clue: `There's ${d}'s fur on it. They were definitely near ${d} recently.` }
-                    ]
-                })),
-                // TIMELINE TEMPLATES (40+ combinations)
-                ...times.map(time => ({
-                    q: `Something happened at exactly ${time}. No one can explain it.`,
-                    options: [
-                        { text: `Check alibis for that time`, clue: `${s[pick(decoys)]} claims ${pick(excuses)}. But can anyone verify?` },
-                        { text: `Check what triggered it`, clue: `The smart home logged a door opening at ${time}. Someone was there.` }
-                    ]
-                })),
-                // CONFRONTATION TEMPLATES (50+ combinations)
-                ...decoys.map(i => ({
-                    q: `${s[i]} and ${s[pick(decoys.filter(x => x !== i))]} are arguing in the ${pick(locations)}.`,
-                    options: [
-                        { text: `Break it up`, clue: `"THEY were supposed to watch ${d}!" "I NEVER agreed to that!" Blame is flying.` },
-                        { text: `Listen in`, clue: `"If you tell them what really happened, I'll—" They spot you. Silence.` }
-                    ]
-                })),
-                ...decoys.map(i => ({
-                    q: `${s[i]}'s story doesn't match what ${s[pick(decoys.filter(x => x !== i))]} said.`,
-                    options: [
-                        { text: `Confront the contradiction`, clue: `One of them is lying. Maybe both. Their eyes meet—a silent agreement to stick to the story.` },
-                        { text: `Let them think you didn't notice`, clue: `You'll use this later. Liars always slip up eventually.` }
-                    ]
-                })),
-                // DISCOVERY TEMPLATES (40+ combinations)
-                ...locations.map(loc => ({
-                    q: `You notice something strange in the ${loc}. Something that wasn't there before.`,
-                    options: [
-                        { text: `Investigate`, clue: `A ${pick(items)} that doesn't belong. And near it—${d}'s paw prints.` },
-                        { text: `Ask who was here`, clue: `Everyone denies being in the ${loc}. But someone was. Someone who left this behind.` }
-                    ]
-                })),
-                // BEHAVIOR TEMPLATES (50+ combinations)
-                ...decoys.map(i => ({
-                    q: `${s[i]} keeps ${pick(actions)}.`,
-                    options: [
-                        { text: `"Something wrong?"`, clue: `"No! Why would something be wrong?!" Defensive. Too defensive.` },
-                        { text: `Observe silently`, clue: `They're hiding something. The nervous energy is almost palpable.` }
-                    ]
-                })),
-                ...decoys.map(i => ({
-                    q: `${s[i]} won't make eye contact with you.`,
-                    options: [
-                        { text: `Force them to look at you`, clue: `Their eyes are watery. Guilt? Fear? Allergies? Hard to tell.` },
-                        { text: `Note the avoidance`, clue: `People avoid eye contact when lying. Or when they're protecting someone.` }
-                    ]
-                })),
-                // PHONE/TECH TEMPLATES (30+ combinations)
-                ...decoys.map(i => ({
-                    q: `${s[i]}'s phone buzzes. They grab it fast—too fast.`,
-                    options: [
-                        { text: `"Who's texting?"`, clue: `"Nobody." They delete something before you can see. Evidence destroyed?` },
-                        { text: `Note the reaction`, clue: `Whatever that message said, it rattled them. Their hand is shaking.` }
-                    ]
-                })),
-                // CULPRIT HINT TEMPLATES (subtle hints)
-                {
-                    q: `Wait. Where's ${s[culprit]}?`,
-                    options: [
-                        { text: `Look for them`, clue: `You find them alone, staring out a window. When they see you, they flinch.` },
-                        { text: `Ask if anyone's seen them`, clue: `${s[pick(decoys)]}: "Their room?" ${s[pick(decoys)]}: "No, outside." Conflicting reports.` }
-                    ]
-                },
-                {
-                    q: `${s[culprit]} has been oddly quiet through all of this.`,
-                    options: [
-                        { text: `Everyone else is panicking`, clue: `But ${s[culprit]}? Calm. Composed. Like they know something others don't.` },
-                        { text: `Maybe they're in shock`, clue: `Or maybe they're waiting. Waiting for this to blow over. Waiting for the blame to land elsewhere.` }
-                    ]
-                },
-                {
-                    q: `You notice ${s[culprit]} hasn't asked a single question about ${d}.`,
-                    options: [
-                        { text: `Strange`, clue: `Everyone else: "Where's ${d}?" "Did you check outside?" ${s[culprit]}? Silent. Like they already know.` },
-                        { text: `Ask them directly`, clue: `"Aren't you worried?" They pause too long before answering. "Of course I am."` }
-                    ]
-                },
-                {
-                    q: `${d} comes home. And goes straight to ${s[culprit]}.`,
-                    options: [
-                        { text: `Dogs don't lie`, clue: `${d} passed everyone. Made a beeline for ${s[culprit]}. Like greeting an accomplice.` },
-                        { text: `Could be random`, clue: `But ${d}'s tail was wagging BEFORE reaching ${s[culprit]}. Recognition. Anticipation.` }
-                    ]
-                },
-                // REVELATION TEMPLATES
-                {
-                    q: `Something clicks. You've been looking at this wrong.`,
-                    options: [
-                        { text: `It wasn't accidental`, clue: `The door. The timing. The alibis. This was PLANNED.` },
-                        { text: `Someone's protecting someone`, clue: `The lies don't add up unless... someone's covering for the real culprit.` }
-                    ]
-                },
-                {
-                    q: `You have enough. Time to make the call.`,
-                    options: [
-                        { text: `Gather everyone. It ends now.`, clue: `The room goes quiet. One of them knows what you're about to say. One is sweating.` },
-                        { text: `Confront them privately`, clue: `No audience. Just you, them, and the truth.` }
-                    ]
+            // === GENERATE WITNESS QUESTIONS (decoy × decoy = 30) ===
+            for (let i = 0; i < decoys.length; i++) {
+                for (let j = 0; j < decoys.length; j++) {
+                    if (i !== j) {
+                        allQuestions.push({
+                            q: `${s[decoys[i]]} pulls you aside. "I need to tell you something about ${s[decoys[j]]}."`,
+                            options: [
+                                { text: `"What about them?"`, clue: `"I saw them near the back door at ${times[trueRandom(times.length)]}. They were acting strange."` },
+                                { text: `"Why are you telling me this?"`, clue: `"Because... I think they might be involved. But don't tell them I said anything."` }
+                            ]
+                        });
+                    }
                 }
+            }
+
+            // === GENERATE BEHAVIOR QUESTIONS (decoy × action × location = 600, take 50) ===
+            for (let i = 0; i < decoys.length; i++) {
+                for (let a = 0; a < actions.length; a++) {
+                    for (let l = 0; l < Math.min(locations.length, 5); l++) {
+                        allQuestions.push({
+                            q: `You catch ${s[decoys[i]]} ${actions[a]} in the ${locations[l]}.`,
+                            options: [
+                                { text: `"What are you doing?"`, clue: `"Nothing! Why are you always watching me?" Their ${emotions[trueRandom(emotions.length)]} tone says otherwise.` },
+                                { text: `Observe without speaking`, clue: `They don't notice you. After a moment, they check the back door. Then return to ${actions[a]}.` }
+                            ]
+                        });
+                    }
+                }
+            }
+
+            // === GENERATE EVIDENCE QUESTIONS (location × evidence = 100) ===
+            for (let l = 0; l < locations.length; l++) {
+                for (let e = 0; e < evidenceTypes.length; e++) {
+                    allQuestions.push({
+                        q: `There's a ${evidenceTypes[e]} in the ${locations[l]}. Fresh.`,
+                        options: [
+                            { text: `Examine it`, clue: `This was left recently. Within the last hour. Someone was here.` },
+                            { text: `Ask who was in the ${locations[l]}`, clue: `${s[decoys[trueRandom(decoys.length)]]}: "Not me." But their shoes have ${locations[l] === 'backyard' ? 'grass' : 'dust'} on them.` }
+                        ]
+                    });
+                }
+            }
+
+            // === GENERATE TIMELINE QUESTIONS (time × decoy × excuse = 60) ===
+            for (let t = 0; t < times.length; t++) {
+                for (let i = 0; i < decoys.length; i++) {
+                    allQuestions.push({
+                        q: `You ask ${s[decoys[i]]} where they were at ${times[t]}.`,
+                        options: [
+                            { text: `Press for details`, clue: `They claim ${excuses[trueRandom(excuses.length)]}. But ${s[decoys[(i + 1) % decoys.length]]} says they saw them elsewhere.` },
+                            { text: `Check their alibi`, clue: `The smart home log shows motion in the hallway at ${times[t]}. Someone moved toward the door.` }
+                        ]
+                    });
+                }
+            }
+
+            // === GENERATE CONFRONTATION QUESTIONS (decoy × decoy × location = 50) ===
+            for (let i = 0; i < decoys.length; i++) {
+                for (let j = i + 1; j < decoys.length; j++) {
+                    for (let l = 0; l < Math.min(locations.length, 4); l++) {
+                        allQuestions.push({
+                            q: `${s[decoys[i]]} and ${s[decoys[j]]} are arguing in the ${locations[l]}.`,
+                            options: [
+                                { text: `Intervene`, clue: `"THEY were supposed to watch ${d}!" "I never agreed to that!" The blame game begins.` },
+                                { text: `Listen in`, clue: `"If you tell anyone what really happened, I swear..." They spot you. Instant silence.` }
+                            ]
+                        });
+                    }
+                }
+            }
+
+            // === GENERATE ITEM DISCOVERY QUESTIONS (item × location = 40) ===
+            for (let i = 0; i < items.length; i++) {
+                for (let l = 0; l < Math.min(locations.length, 4); l++) {
+                    allQuestions.push({
+                        q: `You find a ${items[i]} on the floor in the ${locations[l]}. It doesn't belong there.`,
+                        options: [
+                            { text: `Check whose it is`, clue: `${s[decoys[trueRandom(decoys.length)]]} claims it. But why was it near the back door?` },
+                            { text: `Look for ${d}'s fur`, clue: `There it is—${d}'s fur on the ${items[i]}. Whoever owns this was near ${d} recently.` }
+                        ]
+                    });
+                }
+            }
+
+            // === GENERATE PHONE QUESTIONS (decoy × emotion = 48) ===
+            for (let i = 0; i < decoys.length; i++) {
+                for (let e = 0; e < emotions.length; e++) {
+                    allQuestions.push({
+                        q: `${s[decoys[i]]}'s phone buzzes. They look ${emotions[e]}.`,
+                        options: [
+                            { text: `"Who is it?"`, clue: `"Nobody!" They delete the message. "Just spam." But their hands are shaking.` },
+                            { text: `Note their reaction`, clue: `Whatever that message said, it changed their demeanor. They won't meet your eyes now.` }
+                        ]
+                    });
+                }
+            }
+
+            // === GENERATE ACCUSATION QUESTIONS (decoy accusing decoy = 30) ===
+            for (let i = 0; i < decoys.length; i++) {
+                for (let j = 0; j < decoys.length; j++) {
+                    if (i !== j) {
+                        allQuestions.push({
+                            q: `${s[decoys[i]]} points at ${s[decoys[j]]}. "It was THEM. I know it."`,
+                            options: [
+                                { text: `"What's your proof?"`, clue: `"I... I just know! They were acting weird all day!" Weak evidence. Strong emotion.` },
+                                { text: `Watch ${s[decoys[j]]}'s reaction`, clue: `They look ${emotions[trueRandom(emotions.length)]}. Guilty? Or shocked at the accusation?` }
+                            ]
+                        });
+                    }
+                }
+            }
+
+            // === CULPRIT HINT QUESTIONS (8 variations) ===
+            const culpritHints = [
+                { q: `Wait. Where's ${s[culprit]}?`, opts: [`Look for them`, `You find them alone, staring out a window. They flinch when they see you.`, `Ask around`, `${s[decoys[0]]}: "Their room?" ${s[decoys[1]]}: "Outside." Which is it?`] },
+                { q: `${s[culprit]} has been oddly quiet.`, opts: [`Notice the silence`, `Everyone else is panicking. ${s[culprit]}? Calm. Too calm.`, `Ask if they're okay`, `"I'm fine." But their voice wavers.`] },
+                { q: `${s[culprit]} hasn't asked about ${d} once.`, opts: [`Interesting`, `Everyone else: "Where's ${d}?" But ${s[culprit]}? Silent. Like they already know.`, `Confront them`, `"Aren't you worried?" A long pause. "Of course."`] },
+                { q: `${d} comes home and runs straight to ${s[culprit]}.`, opts: [`Dogs know`, `${d} passed everyone. Made a beeline. Like greeting an accomplice.`, `Coincidence?`, `${d}'s tail was wagging BEFORE reaching ${s[culprit]}.`] },
+                { q: `${s[culprit]} keeps checking the clock.`, opts: [`Why?`, `Like they're waiting for something. Or counting down.`, `Ask them`, `"What? No reason." But they checked it again.`] },
+                { q: `${s[culprit]}'s shoes are clean. Too clean.`, opts: [`They were supposedly outside`, `If they went to the backyard, where's the dirt?`, `Check the doormat`, `Fresh grass stains. Someone wiped their shoes recently.`] },
+                { q: `${s[culprit]} knows details they shouldn't.`, opts: [`"How do you know that?"`, `"I... someone told me." Who? When?`, `Note it`, `They mentioned the ${escapeTime} before anyone else did.`] },
+                { q: `Something's off about ${s[culprit]}'s alibi.`, opts: [`Cross-reference`, `They said they were in their room. But ${s[decoys[0]]} saw them downstairs.`, `Let it slide`, `For now. But you'll remember this.`] }
+            ];
+            culpritHints.forEach(h => {
+                allQuestions.push({
+                    q: h.q,
+                    options: [
+                        { text: h.opts[0], clue: h.opts[1] },
+                        { text: h.opts[2], clue: h.opts[3] }
+                    ]
+                });
+            });
+
+            // === REVELATION QUESTIONS (always at end) ===
+            const revelationQuestions = [
+                { q: `Something clicks. You've been looking at this wrong.`, options: [{ text: `It was planned`, clue: `The door. The timing. The alibis. This wasn't an accident.` }, { text: `Someone's covering`, clue: `The lies protect someone. Family loyalty runs deep.` }] },
+                { q: `You gather all the evidence in your mind.`, options: [{ text: `The timeline`, clue: `One person has no alibi for the critical 4 minutes.` }, { text: `The motive`, clue: `One person benefits from ${d} being "lost."` }] },
+                { q: `It's time. You know who did it.`, options: [{ text: `Confront them now`, clue: `The room goes silent. One face goes pale.` }, { text: `Gather everyone first`, clue: `Maximum impact. Everyone will see the truth revealed.` }] }
             ];
 
-            // Shuffle the entire bank
-            fisherYatesShuffle(questionTemplates);
+            // Shuffle main questions, append revelations at end
+            fisherYatesShuffle(allQuestions);
 
-            // This gives us 300+ unique questions from templates
-            const allQuestions = questionTemplates;
+            // Log question count for debugging
+            console.log('Generated ' + allQuestions.length + ' questions');
+
+            // Take 30 and add revelation questions
+            const finalQuestions = [...allQuestions.slice(0, 27), ...revelationQuestions];
+
+            const allQuestionsBank = finalQuestions;
 
             // Store the full question bank (shuffled - already shuffled above)
             allQuestionBank = allQuestions;
