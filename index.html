@@ -1005,860 +1005,868 @@
             </div>
         </div>
 
-    </div>
+        <!-- Hidden YouTube Player -->
+        <div id="youtube-player"
+            style="position: absolute; top: -100px; left: -100px; width: 1px; height: 1px; overflow: hidden;"></div>
 
-    <!-- YouTube IFrame API -->
-    <script src="https://www.youtube.com/iframe_api"></script>
+        <!-- Audio Control Button -->
+        <div id="audioControl" class="audio-control muted" onclick="toggleAudio()"
+            style="position: fixed; top: 20px; right: 20px; z-index: 9999; cursor: pointer; background: rgba(0,0,0,0.5); border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,0.3);">
+            <span class="icon" style="font-size: 1.5rem;">🔇</span>
+        </div>
 
-    <script>
-        // ===== YOUTUBE AUDIO PLAYER =====
-        let ytPlayer;
-        let isMuted = true;
+        <!-- YouTube IFrame API -->
+        <script src="https://www.youtube.com/iframe_api"></script>
 
-        function onYouTubeIframeAPIReady() {
-            ytPlayer = new YT.Player('youtube-player', {
-                height: '1',
-                width: '1',
-                videoId: 'OF2g4MhyU4s',
-                playerVars: {
-                    'autoplay': 1,
-                    'loop': 1,
-                    'playlist': 'OF2g4MhyU4s',
-                    'controls': 0,
-                    'showinfo': 0,
-                    'modestbranding': 1,
-                    'disablekb': 1,
-                    'fs': 0,
-                    'rel': 0
-                },
-                events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
-                }
-            });
-        }
+        <script>
+            // ===== YOUTUBE AUDIO PLAYER =====
+            let ytPlayer;
+            let isMuted = true;
 
-        function onPlayerReady(event) {
-            // Start muted
-            event.target.mute();
-            event.target.playVideo();
-        }
-
-        function onPlayerStateChange(event) {
-            // Loop the video when it ends
-            if (event.data === YT.PlayerState.ENDED) {
-                ytPlayer.seekTo(0);
-                ytPlayer.playVideo();
-            }
-        }
-
-        function toggleAudio() {
-            const control = document.getElementById('audioControl');
-            const icon = control.querySelector('.icon');
-
-            if (isMuted) {
-                // Unmute
-                if (ytPlayer && ytPlayer.unMute) {
-                    ytPlayer.unMute();
-                    ytPlayer.setVolume(50);
-                    ytPlayer.playVideo();
-                }
-                isMuted = false;
-                control.classList.remove('muted');
-                icon.textContent = '🔊';
-            } else {
-                // Mute
-                if (ytPlayer && ytPlayer.mute) {
-                    ytPlayer.mute();
-                }
-                isMuted = true;
-                control.classList.add('muted');
-                icon.textContent = '🔇';
-            }
-        }
-
-        // ===== FLOATING PAW PRINTS =====
-        function createFloatingPaws() {
-            const container = document.getElementById('floatingPaws');
-            const pawEmojis = ['🐾', '🐕', '🦴', '🐶'];
-
-            for (let i = 0; i < 15; i++) {
-                const paw = document.createElement('div');
-                paw.className = 'paw';
-                paw.textContent = pawEmojis[Math.floor(Math.random() * pawEmojis.length)];
-                paw.style.left = Math.random() * 100 + '%';
-                paw.style.top = Math.random() * 100 + '%';
-                paw.style.animationDelay = Math.random() * 15 + 's';
-                paw.style.fontSize = (1.5 + Math.random() * 1.5) + 'rem';
-                container.appendChild(paw);
-            }
-        }
-        createFloatingPaws();
-
-        // ===== SOUND EFFECTS (separate from music) =====
-        const SFX = {
-            twist: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
-            reveal: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3',
-            suspense: 'https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3',
-            wrong: 'https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3',
-            correct: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3',
-            click: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'
-        };
-
-        function playSFX(type) {
-            try {
-                const audio = new Audio(SFX[type] || SFX.click);
-                audio.volume = 0.4;
-                audio.play().catch(() => { }); // Ignore autoplay errors
-            } catch (e) { }
-        }
-
-        // ===== TRUE RANDOMNESS FUNCTIONS =====
-        function trueRandom(max) {
-            // Use crypto API for true randomness
-            const array = new Uint32Array(1);
-            window.crypto.getRandomValues(array);
-            return array[0] % max;
-        }
-
-        function fisherYatesShuffle(array) {
-            // Fisher-Yates shuffle with crypto random for unbiased shuffling
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = trueRandom(i + 1);
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        // ===== GAME STATE =====
-        let detective = '';
-        let dog = '';
-        let suspects = [];
-        let culprit = 0;
-        let currentQuestion = 0;
-        let currentPhase = 1; // Phases 1-3, then bonus
-        let questionsPerPhase = 10;
-        let maxPhases = 3;
-        let cluesFound = [];
-        let inBonusRound = false;
-        let bonusQuestionsAsked = 0;
-        let allQuestionBank = []; // Extensive question bank
-        let phaseQuestions = []; // Current phase's 10 questions
-
-        // Dynamic game elements
-        let escapeTime = '';
-        let escapeDay = '';
-        let characterRoles = {};
-        let storyVariant = 0;
-
-        // ===== DYNAMIC PLOT SYSTEM =====
-        // Each suspect gets randomly assigned attributes that drive the narrative
-        let suspectProfiles = [];
-
-        const MOTIVES = [
-            { id: 'neutral', label: 'Neutral / routine', clue: 'had no particular reason to act' },
-            { id: 'annoyance', label: 'Annoyance', clue: 'seemed frustrated with the situation' },
-            { id: 'careless', label: 'Carelessness', clue: 'wasn\'t paying attention' },
-            { id: 'sympathy', label: 'Sympathy for the dog', clue: 'thought the dog needed freedom' },
-            { id: 'selfinterest', label: 'Self-interest', clue: 'had something to gain' },
-            { id: 'panic', label: 'Fear / panic', clue: 'was acting out of desperation' },
-            { id: 'pressure', label: 'Social pressure', clue: 'felt pressured by someone else' },
-            { id: 'moral', label: 'Moral justification', clue: 'believed they were doing the right thing' },
-            { id: 'exhaustion', label: 'Exhaustion', clue: 'was too tired to think straight' },
-            { id: 'greed', label: 'Greed', clue: 'wanted something for themselves' }
-        ];
-
-        const METHODS = [
-            { id: 'door', label: 'Door left open', clue: 'The door wasn\'t properly closed' },
-            { id: 'gate', label: 'Gate unlatched', clue: 'The gate latch was undone' },
-            { id: 'leash', label: 'Leash failure', clue: 'The leash wasn\'t secured properly' },
-            { id: 'deliberate', label: 'Deliberate release', clue: 'Someone opened the door on purpose' },
-            { id: 'miscomm', label: 'Miscommunication', clue: 'There was a mix-up about who was watching' },
-            { id: 'distract', label: 'Distraction', clue: 'Someone got distracted at the wrong moment' },
-            { id: 'accident', label: 'Physical accident', clue: 'It was a clumsy mistake' },
-            { id: 'tech', label: 'Technology failure', clue: 'The smart lock/camera failed' },
-            { id: 'handoff', label: 'Handed to someone', clue: 'The dog was given to another person' },
-            { id: 'escape', label: 'Dog escaped on its own', clue: 'The dog was determined to get out' }
-        ];
-
-        const AWARENESS = [
-            { id: 'aware', label: 'Fully aware', clue: 'knew exactly what was happening' },
-            { id: 'suspected', label: 'Suspected something', clue: 'had a feeling something was wrong' },
-            { id: 'late', label: 'Noticed too late', clue: 'realized what happened after the fact' },
-            { id: 'unaware', label: 'Completely unaware', clue: 'had no idea anything happened' },
-            { id: 'lied', label: 'Lied about awareness', clue: 'is pretending not to know' }
-        ];
-
-        const INTENT = [
-            { id: 'accident', label: 'Pure accident', clue: 'It was genuinely unintentional' },
-            { id: 'negligence', label: 'Negligence', clue: 'They should have been more careful' },
-            { id: 'mixed', label: 'Mixed intent', clue: 'Part of them wanted this to happen' },
-            { id: 'dogsgood', label: 'For the dog\'s good', clue: 'They thought they were helping the dog' },
-            { id: 'deliberate', label: 'Deliberate wrongdoing', clue: 'They did this on purpose' }
-        ];
-
-        const AFTERMATH = [
-            { id: 'helped', label: 'Tried to help search', clue: 'immediately joined the search' },
-            { id: 'covered', label: 'Covered tracks', clue: 'started hiding evidence' },
-            { id: 'panicked', label: 'Panicked and hid', clue: 'froze up and withdrew' },
-            { id: 'partial', label: 'Confessed partially', clue: 'admitted to some but not all' },
-            { id: 'deflected', label: 'Deflected blame', clue: 'started pointing fingers at others' },
-            { id: 'victim', label: 'Played victim', clue: 'acted like this affected them most' },
-            { id: 'normal', label: 'Acted normally', clue: 'behaved as if nothing happened' }
-        ];
-
-        function generateSuspectProfiles() {
-            suspectProfiles = [];
-            for (let i = 0; i < 7; i++) {
-                suspectProfiles.push({
-                    motive: MOTIVES[trueRandom(MOTIVES.length)],
-                    method: METHODS[trueRandom(METHODS.length)],
-                    awareness: AWARENESS[trueRandom(AWARENESS.length)],
-                    intent: INTENT[trueRandom(INTENT.length)],
-                    aftermath: AFTERMATH[trueRandom(AFTERMATH.length)]
+            function onYouTubeIframeAPIReady() {
+                ytPlayer = new YT.Player('youtube-player', {
+                    height: '1',
+                    width: '1',
+                    videoId: 'OF2g4MhyU4s',
+                    playerVars: {
+                        'autoplay': 1,
+                        'loop': 1,
+                        'playlist': 'OF2g4MhyU4s',
+                        'controls': 0,
+                        'showinfo': 0,
+                        'modestbranding': 1,
+                        'disablekb': 1,
+                        'fs': 0,
+                        'rel': 0
+                    },
+                    events: {
+                        'onReady': onPlayerReady,
+                        'onStateChange': onPlayerStateChange
+                    }
                 });
             }
-            console.log('=== SUSPECT PROFILES GENERATED ===');
-            suspects.forEach((name, i) => {
-                console.log(`${name}: ${suspectProfiles[i].motive.label}, ${suspectProfiles[i].method.label}, ${suspectProfiles[i].aftermath.label}`);
-            });
-        }
 
-        let questions = [];
-        let bonusQuestions = [];
+            function onPlayerReady(event) {
+                // Start muted
+                event.target.mute();
+                event.target.playVideo();
+            }
 
-        function getVal(id, def) {
-            const v = document.getElementById(id).value.trim();
-            return v || def;
-        }
+            function onPlayerStateChange(event) {
+                // Loop the video when it ends
+                if (event.data === YT.PlayerState.ENDED) {
+                    ytPlayer.seekTo(0);
+                    ytPlayer.playVideo();
+                }
+            }
 
-        // Generate random escape time (never 3:47)
-        function generateEscapeTime() {
-            const hours = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-            const mins = [0, 5, 10, 15, 18, 22, 25, 28, 31, 33, 38, 41, 43, 52, 55, 58];
-            // Exclude 3:47
-            let h, m;
-            do {
-                h = hours[Math.floor(Math.random() * hours.length)];
-                m = mins[Math.floor(Math.random() * mins.length)];
-            } while (h === 3 && m === 47);
+            function toggleAudio() {
+                const control = document.getElementById('audioControl');
+                const icon = control.querySelector('.icon');
 
-            const period = Math.random() > 0.3 ? 'PM' : 'AM';
-            return `${h}:${m.toString().padStart(2, '0')} ${period}`;
-        }
+                if (isMuted) {
+                    // Unmute
+                    if (ytPlayer && ytPlayer.unMute) {
+                        ytPlayer.unMute();
+                        ytPlayer.setVolume(50);
+                        ytPlayer.playVideo();
+                    }
+                    isMuted = false;
+                    control.classList.remove('muted');
+                    icon.textContent = '🔊';
+                } else {
+                    // Mute
+                    if (ytPlayer && ytPlayer.mute) {
+                        ytPlayer.mute();
+                    }
+                    isMuted = true;
+                    control.classList.add('muted');
+                    icon.textContent = '🔇';
+                }
+            }
 
-        // Generate random day
-        function generateEscapeDay() {
-            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-            const modifiers = ['an ordinary', 'a perfectly normal', 'a seemingly quiet', 'an unremarkable', 'a lazy', 'a chaotic', 'a strange'];
-            return `${modifiers[Math.floor(Math.random() * modifiers.length)]} ${days[Math.floor(Math.random() * days.length)]}`;
-        }
+            // ===== FLOATING PAW PRINTS =====
+            function createFloatingPaws() {
+                const container = document.getElementById('floatingPaws');
+                const pawEmojis = ['🐾', '🐕', '🦴', '🐶'];
 
-        // Assign unique roles to each character
-        function assignCharacterRoles() {
-            const roles = [
-                { type: 'liar', trait: 'keeps changing their story' },
-                { type: 'nervous', trait: 'is sweating and avoiding eye contact' },
-                { type: 'defensive', trait: 'gets angry when questioned' },
-                { type: 'helpful', trait: 'is suspiciously eager to help' },
-                { type: 'quiet', trait: 'has barely said a word all day' },
-                { type: 'alibi', trait: 'has a perfect alibi... too perfect' },
-                { type: 'accuser', trait: 'keeps pointing fingers at everyone else' }
-            ];
+                for (let i = 0; i < 15; i++) {
+                    const paw = document.createElement('div');
+                    paw.className = 'paw';
+                    paw.textContent = pawEmojis[Math.floor(Math.random() * pawEmojis.length)];
+                    paw.style.left = Math.random() * 100 + '%';
+                    paw.style.top = Math.random() * 100 + '%';
+                    paw.style.animationDelay = Math.random() * 15 + 's';
+                    paw.style.fontSize = (1.5 + Math.random() * 1.5) + 'rem';
+                    container.appendChild(paw);
+                }
+            }
+            createFloatingPaws();
 
-            const shuffledRoles = [...roles].sort(() => Math.random() - 0.5);
-            const shuffledIndices = [0, 1, 2, 3, 4, 5, 6].sort(() => Math.random() - 0.5);
+            // ===== SOUND EFFECTS (separate from music) =====
+            const SFX = {
+                twist: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
+                reveal: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3',
+                suspense: 'https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3',
+                wrong: 'https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3',
+                correct: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3',
+                click: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'
+            };
 
-            characterRoles = {};
-            shuffledIndices.forEach((idx, i) => {
-                characterRoles[idx] = shuffledRoles[i];
-            });
-        }
+            function playSFX(type) {
+                try {
+                    const audio = new Audio(SFX[type] || SFX.click);
+                    audio.volume = 0.4;
+                    audio.play().catch(() => { }); // Ignore autoplay errors
+                } catch (e) { }
+            }
 
-        // True random using crypto API when available
-        function trueRandom(max) {
-            if (window.crypto && window.crypto.getRandomValues) {
+            // ===== TRUE RANDOMNESS FUNCTIONS =====
+            function trueRandom(max) {
+                // Use crypto API for true randomness
                 const array = new Uint32Array(1);
                 window.crypto.getRandomValues(array);
                 return array[0] % max;
             }
-            // Fallback with multiple random calls for better entropy
-            return Math.floor((Math.random() + Math.random() + Math.random()) / 3 * max);
-        }
 
-        function startGame() {
-            detective = getVal('detectiveName', 'Detective');
-            dog = getVal('dogName', 'Tiny');
+            function fisherYatesShuffle(array) {
+                // Fisher-Yates shuffle with crypto random for unbiased shuffling
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = trueRandom(i + 1);
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
 
-            // Pool of random default names - shuffled properly
-            const namePool = fisherYatesShuffle([
-                'Mom', 'Dad', 'Brother', 'Sister', 'Grandma', 'Grandpa', 'Uncle', 'Aunt',
-                'The Neighbor', 'The Mailman', 'The Dog Walker', 'The Babysitter', 'The Gardener',
-                'Best Friend', 'The Cousin', 'Roommate', 'The Chef', 'The Butler',
-                'A Stranger', 'The Delivery Guy', 'The Handyman', 'The Pet Sitter',
-                'The Teacher', 'The Coach', 'The Ex', 'The Boss', 'The Intern',
-                'Karen', 'Kevin', 'Chad', 'Becky', 'Steve', 'Linda', 'Gary', 'Susan'
-            ]);
+            // ===== GAME STATE =====
+            let detective = '';
+            let dog = '';
+            let suspects = [];
+            let culprit = 0;
+            let currentQuestion = 0;
+            let currentPhase = 1; // Phases 1-3, then bonus
+            let questionsPerPhase = 10;
+            let maxPhases = 3;
+            let cluesFound = [];
+            let inBonusRound = false;
+            let bonusQuestionsAsked = 0;
+            let allQuestionBank = []; // Extensive question bank
+            let phaseQuestions = []; // Current phase's 10 questions
 
-            // Get all suspects with randomized defaults
-            let tempSuspects = [
-                getVal('suspect1', namePool[0]),
-                getVal('suspect2', namePool[1]),
-                getVal('suspect3', namePool[2]),
-                getVal('suspect4', namePool[3]),
-                getVal('suspect5', namePool[4]),
-                getVal('suspect6', namePool[5]),
-                getVal('suspect7', namePool[6])
+            // Dynamic game elements
+            let escapeTime = '';
+            let escapeDay = '';
+            let characterRoles = {};
+            let storyVariant = 0;
+
+            // ===== DYNAMIC PLOT SYSTEM =====
+            // Each suspect gets randomly assigned attributes that drive the narrative
+            let suspectProfiles = [];
+
+            const MOTIVES = [
+                { id: 'neutral', label: 'Neutral / routine', clue: 'had no particular reason to act' },
+                { id: 'annoyance', label: 'Annoyance', clue: 'seemed frustrated with the situation' },
+                { id: 'careless', label: 'Carelessness', clue: 'wasn\'t paying attention' },
+                { id: 'sympathy', label: 'Sympathy for the dog', clue: 'thought the dog needed freedom' },
+                { id: 'selfinterest', label: 'Self-interest', clue: 'had something to gain' },
+                { id: 'panic', label: 'Fear / panic', clue: 'was acting out of desperation' },
+                { id: 'pressure', label: 'Social pressure', clue: 'felt pressured by someone else' },
+                { id: 'moral', label: 'Moral justification', clue: 'believed they were doing the right thing' },
+                { id: 'exhaustion', label: 'Exhaustion', clue: 'was too tired to think straight' },
+                { id: 'greed', label: 'Greed', clue: 'wanted something for themselves' }
             ];
 
-            // Shuffle the suspects array with Fisher-Yates
-            suspects = fisherYatesShuffle(tempSuspects);
-
-            // Pick culprit using true random
-            culprit = trueRandom(7);
-
-            // Log for debugging (can remove later)
-            console.log('Culprit index:', culprit, 'Name:', suspects[culprit]);
-
-            escapeTime = generateEscapeTime();
-            escapeDay = generateEscapeDay();
-            storyVariant = trueRandom(5);
-            assignCharacterRoles();
-
-            // Generate unique profiles for each suspect
-            generateSuspectProfiles();
-
-            generateQuestions();
-
-            document.getElementById('dogNameTitle').textContent = dog;
-            document.getElementById('storyText').innerHTML = generateStory();
-
-            playSFX('suspense');
-            showScreen('storyScreen');
-        }
-
-        function generateStory() {
-            const s = suspects;
-            const d = dog;
-            const t = escapeTime;
-            const day = escapeDay;
-
-            // Random story opener
-            const openers = [
-                `<p>It was ${t} on ${day}. Nothing special. Nothing suspicious.</p>`,
-                `<p>The clock struck ${t}. It was ${day}, and everything seemed fine.</p>`,
-                `<p>${day}. ${t}. The moment everything changed.</p>`,
-                `<p>Nobody saw it coming. ${t} on ${day}—the calm before the storm.</p>`,
-                `<p>If you asked anyone what they were doing at ${t} on ${day}, they'd all have an answer. But one of them is lying.</p>`
+            const METHODS = [
+                { id: 'door', label: 'Door left open', clue: 'The door wasn\'t properly closed' },
+                { id: 'gate', label: 'Gate unlatched', clue: 'The gate latch was undone' },
+                { id: 'leash', label: 'Leash failure', clue: 'The leash wasn\'t secured properly' },
+                { id: 'deliberate', label: 'Deliberate release', clue: 'Someone opened the door on purpose' },
+                { id: 'miscomm', label: 'Miscommunication', clue: 'There was a mix-up about who was watching' },
+                { id: 'distract', label: 'Distraction', clue: 'Someone got distracted at the wrong moment' },
+                { id: 'accident', label: 'Physical accident', clue: 'It was a clumsy mistake' },
+                { id: 'tech', label: 'Technology failure', clue: 'The smart lock/camera failed' },
+                { id: 'handoff', label: 'Handed to someone', clue: 'The dog was given to another person' },
+                { id: 'escape', label: 'Dog escaped on its own', clue: 'The dog was determined to get out' }
             ];
 
-            // Random discovery scene
-            const discoveries = [
-                `<p>Then <strong>${s[Math.floor(Math.random() * 7)]}</strong> screamed.</p>
+            const AWARENESS = [
+                { id: 'aware', label: 'Fully aware', clue: 'knew exactly what was happening' },
+                { id: 'suspected', label: 'Suspected something', clue: 'had a feeling something was wrong' },
+                { id: 'late', label: 'Noticed too late', clue: 'realized what happened after the fact' },
+                { id: 'unaware', label: 'Completely unaware', clue: 'had no idea anything happened' },
+                { id: 'lied', label: 'Lied about awareness', clue: 'is pretending not to know' }
+            ];
+
+            const INTENT = [
+                { id: 'accident', label: 'Pure accident', clue: 'It was genuinely unintentional' },
+                { id: 'negligence', label: 'Negligence', clue: 'They should have been more careful' },
+                { id: 'mixed', label: 'Mixed intent', clue: 'Part of them wanted this to happen' },
+                { id: 'dogsgood', label: 'For the dog\'s good', clue: 'They thought they were helping the dog' },
+                { id: 'deliberate', label: 'Deliberate wrongdoing', clue: 'They did this on purpose' }
+            ];
+
+            const AFTERMATH = [
+                { id: 'helped', label: 'Tried to help search', clue: 'immediately joined the search' },
+                { id: 'covered', label: 'Covered tracks', clue: 'started hiding evidence' },
+                { id: 'panicked', label: 'Panicked and hid', clue: 'froze up and withdrew' },
+                { id: 'partial', label: 'Confessed partially', clue: 'admitted to some but not all' },
+                { id: 'deflected', label: 'Deflected blame', clue: 'started pointing fingers at others' },
+                { id: 'victim', label: 'Played victim', clue: 'acted like this affected them most' },
+                { id: 'normal', label: 'Acted normally', clue: 'behaved as if nothing happened' }
+            ];
+
+            function generateSuspectProfiles() {
+                suspectProfiles = [];
+                for (let i = 0; i < 7; i++) {
+                    suspectProfiles.push({
+                        motive: MOTIVES[trueRandom(MOTIVES.length)],
+                        method: METHODS[trueRandom(METHODS.length)],
+                        awareness: AWARENESS[trueRandom(AWARENESS.length)],
+                        intent: INTENT[trueRandom(INTENT.length)],
+                        aftermath: AFTERMATH[trueRandom(AFTERMATH.length)]
+                    });
+                }
+                console.log('=== SUSPECT PROFILES GENERATED ===');
+                suspects.forEach((name, i) => {
+                    console.log(`${name}: ${suspectProfiles[i].motive.label}, ${suspectProfiles[i].method.label}, ${suspectProfiles[i].aftermath.label}`);
+                });
+            }
+
+            let questions = [];
+            let bonusQuestions = [];
+
+            function getVal(id, def) {
+                const v = document.getElementById(id).value.trim();
+                return v || def;
+            }
+
+            // Generate random escape time (never 3:47)
+            function generateEscapeTime() {
+                const hours = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+                const mins = [0, 5, 10, 15, 18, 22, 25, 28, 31, 33, 38, 41, 43, 52, 55, 58];
+                // Exclude 3:47
+                let h, m;
+                do {
+                    h = hours[Math.floor(Math.random() * hours.length)];
+                    m = mins[Math.floor(Math.random() * mins.length)];
+                } while (h === 3 && m === 47);
+
+                const period = Math.random() > 0.3 ? 'PM' : 'AM';
+                return `${h}:${m.toString().padStart(2, '0')} ${period}`;
+            }
+
+            // Generate random day
+            function generateEscapeDay() {
+                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                const modifiers = ['an ordinary', 'a perfectly normal', 'a seemingly quiet', 'an unremarkable', 'a lazy', 'a chaotic', 'a strange'];
+                return `${modifiers[Math.floor(Math.random() * modifiers.length)]} ${days[Math.floor(Math.random() * days.length)]}`;
+            }
+
+            // Assign unique roles to each character
+            function assignCharacterRoles() {
+                const roles = [
+                    { type: 'liar', trait: 'keeps changing their story' },
+                    { type: 'nervous', trait: 'is sweating and avoiding eye contact' },
+                    { type: 'defensive', trait: 'gets angry when questioned' },
+                    { type: 'helpful', trait: 'is suspiciously eager to help' },
+                    { type: 'quiet', trait: 'has barely said a word all day' },
+                    { type: 'alibi', trait: 'has a perfect alibi... too perfect' },
+                    { type: 'accuser', trait: 'keeps pointing fingers at everyone else' }
+                ];
+
+                const shuffledRoles = [...roles].sort(() => Math.random() - 0.5);
+                const shuffledIndices = [0, 1, 2, 3, 4, 5, 6].sort(() => Math.random() - 0.5);
+
+                characterRoles = {};
+                shuffledIndices.forEach((idx, i) => {
+                    characterRoles[idx] = shuffledRoles[i];
+                });
+            }
+
+            // True random using crypto API when available
+            function trueRandom(max) {
+                if (window.crypto && window.crypto.getRandomValues) {
+                    const array = new Uint32Array(1);
+                    window.crypto.getRandomValues(array);
+                    return array[0] % max;
+                }
+                // Fallback with multiple random calls for better entropy
+                return Math.floor((Math.random() + Math.random() + Math.random()) / 3 * max);
+            }
+
+            function startGame() {
+                detective = getVal('detectiveName', 'Detective');
+                dog = getVal('dogName', 'Tiny');
+
+                // Pool of random default names - shuffled properly
+                const namePool = fisherYatesShuffle([
+                    'Mom', 'Dad', 'Brother', 'Sister', 'Grandma', 'Grandpa', 'Uncle', 'Aunt',
+                    'The Neighbor', 'The Mailman', 'The Dog Walker', 'The Babysitter', 'The Gardener',
+                    'Best Friend', 'The Cousin', 'Roommate', 'The Chef', 'The Butler',
+                    'A Stranger', 'The Delivery Guy', 'The Handyman', 'The Pet Sitter',
+                    'The Teacher', 'The Coach', 'The Ex', 'The Boss', 'The Intern',
+                    'Karen', 'Kevin', 'Chad', 'Becky', 'Steve', 'Linda', 'Gary', 'Susan'
+                ]);
+
+                // Get all suspects with randomized defaults
+                let tempSuspects = [
+                    getVal('suspect1', namePool[0]),
+                    getVal('suspect2', namePool[1]),
+                    getVal('suspect3', namePool[2]),
+                    getVal('suspect4', namePool[3]),
+                    getVal('suspect5', namePool[4]),
+                    getVal('suspect6', namePool[5]),
+                    getVal('suspect7', namePool[6])
+                ];
+
+                // Shuffle the suspects array with Fisher-Yates
+                suspects = fisherYatesShuffle(tempSuspects);
+
+                // Pick culprit using true random
+                culprit = trueRandom(7);
+
+                // Log for debugging (can remove later)
+                console.log('Culprit index:', culprit, 'Name:', suspects[culprit]);
+
+                escapeTime = generateEscapeTime();
+                escapeDay = generateEscapeDay();
+                storyVariant = trueRandom(5);
+                assignCharacterRoles();
+
+                // Generate unique profiles for each suspect
+                generateSuspectProfiles();
+
+                generateQuestions();
+
+                document.getElementById('dogNameTitle').textContent = dog;
+                document.getElementById('storyText').innerHTML = generateStory();
+
+                playSFX('suspense');
+                showScreen('storyScreen');
+            }
+
+            function generateStory() {
+                const s = suspects;
+                const d = dog;
+                const t = escapeTime;
+                const day = escapeDay;
+
+                // Random story opener
+                const openers = [
+                    `<p>It was ${t} on ${day}. Nothing special. Nothing suspicious.</p>`,
+                    `<p>The clock struck ${t}. It was ${day}, and everything seemed fine.</p>`,
+                    `<p>${day}. ${t}. The moment everything changed.</p>`,
+                    `<p>Nobody saw it coming. ${t} on ${day}—the calm before the storm.</p>`,
+                    `<p>If you asked anyone what they were doing at ${t} on ${day}, they'd all have an answer. But one of them is lying.</p>`
+                ];
+
+                // Random discovery scene
+                const discoveries = [
+                    `<p>Then <strong>${s[Math.floor(Math.random() * 7)]}</strong> screamed.</p>
                  <p>The back door was open. The leash was on the floor. <strong>${d}</strong> was gone.</p>`,
-                `<p><strong>${s[Math.floor(Math.random() * 7)]}</strong> noticed first. "${d}? <em>${d}?!</em>" The panic in their voice was real.</p>
+                    `<p><strong>${s[Math.floor(Math.random() * 7)]}</strong> noticed first. "${d}? <em>${d}?!</em>" The panic in their voice was real.</p>
                  <p>The gate was swinging in the wind. No ${d} in sight.</p>`,
-                `<p>It was <strong>${s[Math.floor(Math.random() * 7)]}</strong> who found the empty collar by the fence.</p>
+                    `<p>It was <strong>${s[Math.floor(Math.random() * 7)]}</strong> who found the empty collar by the fence.</p>
                  <p>"${d} is GONE!" The words echoed through the house.</p>`,
-                `<p>The house went silent when <strong>${s[Math.floor(Math.random() * 7)]}</strong> checked ${d}'s usual spot.</p>
+                    `<p>The house went silent when <strong>${s[Math.floor(Math.random() * 7)]}</strong> checked ${d}'s usual spot.</p>
                  <p>Empty. The crate door was wide open. The back door... also open.</p>`,
-                `<p>"Has anyone seen ${d}?" <strong>${s[Math.floor(Math.random() * 7)]}</strong> asked innocently enough.</p>
+                    `<p>"Has anyone seen ${d}?" <strong>${s[Math.floor(Math.random() * 7)]}</strong> asked innocently enough.</p>
                  <p>Then the realization hit. The door. The empty yard. The missing dog.</p>`
-            ];
+                ];
 
-            // Random character dynamics based on roles
-            let dynamicsText = '<p>';
-            Object.entries(characterRoles).forEach(([idx, role]) => {
-                if (Math.random() > 0.6) {
-                    dynamicsText += `${s[idx]} ${role.trait}. `;
-                }
-            });
-            dynamicsText += '</p>';
+                // Random character dynamics based on roles
+                let dynamicsText = '<p>';
+                Object.entries(characterRoles).forEach(([idx, role]) => {
+                    if (Math.random() > 0.6) {
+                        dynamicsText += `${s[idx]} ${role.trait}. `;
+                    }
+                });
+                dynamicsText += '</p>';
 
-            // Random twists in the setup
-            const twists = [
-                `<p>Strange thing is—the security camera was conveniently "broken" since yesterday.</p>`,
-                `<p>Even stranger: ${s[Math.floor(Math.random() * 7)]} was seen near the door just minutes before.</p>`,
-                `<p>The weirdest part? ${d}'s treats are scattered in a trail leading outside. Someone lured them.</p>`,
-                `<p>But here's the thing: THREE different people had access to that door. And they're all lying about something.</p>`,
-                `<p>What nobody's talking about: there was an argument earlier. A loud one. About ${d}.</p>`
-            ];
+                // Random twists in the setup
+                const twists = [
+                    `<p>Strange thing is—the security camera was conveniently "broken" since yesterday.</p>`,
+                    `<p>Even stranger: ${s[Math.floor(Math.random() * 7)]} was seen near the door just minutes before.</p>`,
+                    `<p>The weirdest part? ${d}'s treats are scattered in a trail leading outside. Someone lured them.</p>`,
+                    `<p>But here's the thing: THREE different people had access to that door. And they're all lying about something.</p>`,
+                    `<p>What nobody's talking about: there was an argument earlier. A loud one. About ${d}.</p>`
+                ];
 
-            const closers = [
-                `<p><strong>Seven suspects. One dog. Zero reliable witnesses.</strong></p>
+                const closers = [
+                    `<p><strong>Seven suspects. One dog. Zero reliable witnesses.</strong></p>
                  <p><em>${detective}, find out who let ${d} out.</em></p>`,
-                `<p><strong>Everyone has a motive. Everyone has an alibi. Everyone is suspicious.</strong></p>
+                    `<p><strong>Everyone has a motive. Everyone has an alibi. Everyone is suspicious.</strong></p>
                  <p><em>Good luck, ${detective}. You'll need it.</em></p>`,
-                `<p><strong>The truth is hiding in plain sight. But whose truth?</strong></p>
+                    `<p><strong>The truth is hiding in plain sight. But whose truth?</strong></p>
                  <p><em>${detective}, cut through the lies.</em></p>`
-            ];
+                ];
 
-            // Story images
-            const storyImage = '<img src="images/crime_scene.png" alt="The crime scene" class="story-image">';
-            const posterImage = '<img src="images/missing_poster.png" alt="Missing dog poster" class="story-image">';
+                // Story images
+                const storyImage = '<img src="images/crime_scene.png" alt="The crime scene" class="story-image">';
+                const posterImage = '<img src="images/missing_poster.png" alt="Missing dog poster" class="story-image">';
 
-            return openers[trueRandom(openers.length)] +
-                storyImage +
-                discoveries[trueRandom(discoveries.length)] +
-                dynamicsText +
-                twists[trueRandom(twists.length)] +
-                posterImage +
-                closers[trueRandom(closers.length)];
-        }
-
-        function generateQuestions() {
-            const s = suspects;
-            const d = dog;
-
-            // Create decoy suspects (not the real culprit) for misdirection
-            const decoys = [0, 1, 2, 3, 4, 5, 6].filter(i => i !== culprit);
-            fisherYatesShuffle(decoys);
-
-            // EXTENSIVE QUESTION BANK - 300+ unique question objects
-            const locations = ['kitchen', 'living room', 'backyard', 'garage', 'hallway', 'bathroom', 'bedroom', 'basement', 'front porch', 'laundry room'];
-            const times = ['3:30 PM', '3:35 PM', '3:40 PM', '3:45 PM', '3:47 PM', '3:50 PM', '3:52 PM', '3:55 PM', '3:58 PM', '4:00 PM'];
-            const items = ['phone', 'jacket', 'keys', 'wallet', 'watch', 'shoes', 'bag', 'book', 'glasses', 'hat', 'scarf', 'headphones'];
-            const actions = ['pacing', 'whispering', 'texting', 'looking out the window', 'checking their phone', 'cleaning frantically', 'avoiding eye contact', 'biting their nails', 'fidgeting', 'staring at the door'];
-            const evidenceTypes = ['muddy footprint', 'torn piece of paper', 'dog treat crumb', 'strand of hair', 'fingerprint', 'scratch mark', 'water droplet', 'grass stain', 'paw print', 'food wrapper'];
-            const excuses = [`"I was in the bathroom"`, `"I was on a call"`, `"I was napping"`, `"I was watching TV"`, `"I was reading"`, `"I was in my room"`, `"I was outside briefly"`, `"I don't remember"`, `"I was eating"`, `"I was showering"`];
-            const emotions = ['nervous', 'defensive', 'angry', 'tearful', 'suspiciously calm', 'fidgety', 'pale', 'sweating'];
-
-            const allQuestions = [];
-
-            // === GENERATE WITNESS QUESTIONS (decoy × decoy = 30) ===
-            for (let i = 0; i < decoys.length; i++) {
-                for (let j = 0; j < decoys.length; j++) {
-                    if (i !== j) {
-                        allQuestions.push({
-                            q: `${s[decoys[i]]} pulls you aside. "I need to tell you something about ${s[decoys[j]]}."`,
-                            options: [
-                                { text: `"What about them?"`, clue: `"I saw them near the back door at ${times[trueRandom(times.length)]}. They were acting strange."` },
-                                { text: `"Why are you telling me this?"`, clue: `"Because... I think they might be involved. But don't tell them I said anything."` }
-                            ]
-                        });
-                    }
-                }
+                return openers[trueRandom(openers.length)] +
+                    storyImage +
+                    discoveries[trueRandom(discoveries.length)] +
+                    dynamicsText +
+                    twists[trueRandom(twists.length)] +
+                    posterImage +
+                    closers[trueRandom(closers.length)];
             }
 
-            // === GENERATE BEHAVIOR QUESTIONS (decoy × action × location = 600, take 50) ===
-            for (let i = 0; i < decoys.length; i++) {
-                for (let a = 0; a < actions.length; a++) {
-                    for (let l = 0; l < Math.min(locations.length, 5); l++) {
-                        allQuestions.push({
-                            q: `You catch ${s[decoys[i]]} ${actions[a]} in the ${locations[l]}.`,
-                            options: [
-                                { text: `"What are you doing?"`, clue: `"Nothing! Why are you always watching me?" Their ${emotions[trueRandom(emotions.length)]} tone says otherwise.` },
-                                { text: `Observe without speaking`, clue: `They don't notice you. After a moment, they check the back door. Then return to ${actions[a]}.` }
-                            ]
-                        });
-                    }
-                }
-            }
+            function generateQuestions() {
+                const s = suspects;
+                const d = dog;
 
-            // === GENERATE EVIDENCE QUESTIONS (location × evidence = 100) ===
-            for (let l = 0; l < locations.length; l++) {
-                for (let e = 0; e < evidenceTypes.length; e++) {
-                    allQuestions.push({
-                        q: `There's a ${evidenceTypes[e]} in the ${locations[l]}. Fresh.`,
-                        options: [
-                            { text: `Examine it`, clue: `This was left recently. Within the last hour. Someone was here.` },
-                            { text: `Ask who was in the ${locations[l]}`, clue: `${s[decoys[trueRandom(decoys.length)]]}: "Not me." But their shoes have ${locations[l] === 'backyard' ? 'grass' : 'dust'} on them.` }
-                        ]
-                    });
-                }
-            }
+                // Create decoy suspects (not the real culprit) for misdirection
+                const decoys = [0, 1, 2, 3, 4, 5, 6].filter(i => i !== culprit);
+                fisherYatesShuffle(decoys);
 
-            // === GENERATE TIMELINE QUESTIONS (time × decoy × excuse = 60) ===
-            for (let t = 0; t < times.length; t++) {
+                // EXTENSIVE QUESTION BANK - 300+ unique question objects
+                const locations = ['kitchen', 'living room', 'backyard', 'garage', 'hallway', 'bathroom', 'bedroom', 'basement', 'front porch', 'laundry room'];
+                const times = ['3:30 PM', '3:35 PM', '3:40 PM', '3:45 PM', '3:47 PM', '3:50 PM', '3:52 PM', '3:55 PM', '3:58 PM', '4:00 PM'];
+                const items = ['phone', 'jacket', 'keys', 'wallet', 'watch', 'shoes', 'bag', 'book', 'glasses', 'hat', 'scarf', 'headphones'];
+                const actions = ['pacing', 'whispering', 'texting', 'looking out the window', 'checking their phone', 'cleaning frantically', 'avoiding eye contact', 'biting their nails', 'fidgeting', 'staring at the door'];
+                const evidenceTypes = ['muddy footprint', 'torn piece of paper', 'dog treat crumb', 'strand of hair', 'fingerprint', 'scratch mark', 'water droplet', 'grass stain', 'paw print', 'food wrapper'];
+                const excuses = [`"I was in the bathroom"`, `"I was on a call"`, `"I was napping"`, `"I was watching TV"`, `"I was reading"`, `"I was in my room"`, `"I was outside briefly"`, `"I don't remember"`, `"I was eating"`, `"I was showering"`];
+                const emotions = ['nervous', 'defensive', 'angry', 'tearful', 'suspiciously calm', 'fidgety', 'pale', 'sweating'];
+
+                const allQuestions = [];
+
+                // === GENERATE WITNESS QUESTIONS (decoy × decoy = 30) ===
                 for (let i = 0; i < decoys.length; i++) {
-                    allQuestions.push({
-                        q: `You ask ${s[decoys[i]]} where they were at ${times[t]}.`,
-                        options: [
-                            { text: `Press for details`, clue: `They claim ${excuses[trueRandom(excuses.length)]}. But ${s[decoys[(i + 1) % decoys.length]]} says they saw them elsewhere.` },
-                            { text: `Check their alibi`, clue: `The smart home log shows motion in the hallway at ${times[t]}. Someone moved toward the door.` }
-                        ]
-                    });
+                    for (let j = 0; j < decoys.length; j++) {
+                        if (i !== j) {
+                            allQuestions.push({
+                                q: `${s[decoys[i]]} pulls you aside. "I need to tell you something about ${s[decoys[j]]}."`,
+                                options: [
+                                    { text: `"What about them?"`, clue: `"I saw them near the back door at ${times[trueRandom(times.length)]}. They were acting strange."` },
+                                    { text: `"Why are you telling me this?"`, clue: `"Because... I think they might be involved. But don't tell them I said anything."` }
+                                ]
+                            });
+                        }
+                    }
                 }
-            }
 
-            // === GENERATE CONFRONTATION QUESTIONS (decoy × decoy × location = 50) ===
-            for (let i = 0; i < decoys.length; i++) {
-                for (let j = i + 1; j < decoys.length; j++) {
+                // === GENERATE BEHAVIOR QUESTIONS (decoy × action × location = 600, take 50) ===
+                for (let i = 0; i < decoys.length; i++) {
+                    for (let a = 0; a < actions.length; a++) {
+                        for (let l = 0; l < Math.min(locations.length, 5); l++) {
+                            allQuestions.push({
+                                q: `You catch ${s[decoys[i]]} ${actions[a]} in the ${locations[l]}.`,
+                                options: [
+                                    { text: `"What are you doing?"`, clue: `"Nothing! Why are you always watching me?" Their ${emotions[trueRandom(emotions.length)]} tone says otherwise.` },
+                                    { text: `Observe without speaking`, clue: `They don't notice you. After a moment, they check the back door. Then return to ${actions[a]}.` }
+                                ]
+                            });
+                        }
+                    }
+                }
+
+                // === GENERATE EVIDENCE QUESTIONS (location × evidence = 100) ===
+                for (let l = 0; l < locations.length; l++) {
+                    for (let e = 0; e < evidenceTypes.length; e++) {
+                        allQuestions.push({
+                            q: `There's a ${evidenceTypes[e]} in the ${locations[l]}. Fresh.`,
+                            options: [
+                                { text: `Examine it`, clue: `This was left recently. Within the last hour. Someone was here.` },
+                                { text: `Ask who was in the ${locations[l]}`, clue: `${s[decoys[trueRandom(decoys.length)]]}: "Not me." But their shoes have ${locations[l] === 'backyard' ? 'grass' : 'dust'} on them.` }
+                            ]
+                        });
+                    }
+                }
+
+                // === GENERATE TIMELINE QUESTIONS (time × decoy × excuse = 60) ===
+                for (let t = 0; t < times.length; t++) {
+                    for (let i = 0; i < decoys.length; i++) {
+                        allQuestions.push({
+                            q: `You ask ${s[decoys[i]]} where they were at ${times[t]}.`,
+                            options: [
+                                { text: `Press for details`, clue: `They claim ${excuses[trueRandom(excuses.length)]}. But ${s[decoys[(i + 1) % decoys.length]]} says they saw them elsewhere.` },
+                                { text: `Check their alibi`, clue: `The smart home log shows motion in the hallway at ${times[t]}. Someone moved toward the door.` }
+                            ]
+                        });
+                    }
+                }
+
+                // === GENERATE CONFRONTATION QUESTIONS (decoy × decoy × location = 50) ===
+                for (let i = 0; i < decoys.length; i++) {
+                    for (let j = i + 1; j < decoys.length; j++) {
+                        for (let l = 0; l < Math.min(locations.length, 4); l++) {
+                            allQuestions.push({
+                                q: `${s[decoys[i]]} and ${s[decoys[j]]} are arguing in the ${locations[l]}.`,
+                                options: [
+                                    { text: `Intervene`, clue: `"THEY were supposed to watch ${d}!" "I never agreed to that!" The blame game begins.` },
+                                    { text: `Listen in`, clue: `"If you tell anyone what really happened, I swear..." They spot you. Instant silence.` }
+                                ]
+                            });
+                        }
+                    }
+                }
+
+                // === GENERATE ITEM DISCOVERY QUESTIONS (item × location = 40) ===
+                for (let i = 0; i < items.length; i++) {
                     for (let l = 0; l < Math.min(locations.length, 4); l++) {
                         allQuestions.push({
-                            q: `${s[decoys[i]]} and ${s[decoys[j]]} are arguing in the ${locations[l]}.`,
+                            q: `You find a ${items[i]} on the floor in the ${locations[l]}. It doesn't belong there.`,
                             options: [
-                                { text: `Intervene`, clue: `"THEY were supposed to watch ${d}!" "I never agreed to that!" The blame game begins.` },
-                                { text: `Listen in`, clue: `"If you tell anyone what really happened, I swear..." They spot you. Instant silence.` }
+                                { text: `Check whose it is`, clue: `${s[decoys[trueRandom(decoys.length)]]} claims it. But why was it near the back door?` },
+                                { text: `Look for ${d}'s fur`, clue: `There it is—${d}'s fur on the ${items[i]}. Whoever owns this was near ${d} recently.` }
                             ]
                         });
                     }
                 }
-            }
 
-            // === GENERATE ITEM DISCOVERY QUESTIONS (item × location = 40) ===
-            for (let i = 0; i < items.length; i++) {
-                for (let l = 0; l < Math.min(locations.length, 4); l++) {
-                    allQuestions.push({
-                        q: `You find a ${items[i]} on the floor in the ${locations[l]}. It doesn't belong there.`,
-                        options: [
-                            { text: `Check whose it is`, clue: `${s[decoys[trueRandom(decoys.length)]]} claims it. But why was it near the back door?` },
-                            { text: `Look for ${d}'s fur`, clue: `There it is—${d}'s fur on the ${items[i]}. Whoever owns this was near ${d} recently.` }
-                        ]
-                    });
-                }
-            }
-
-            // === GENERATE PHONE QUESTIONS (decoy × emotion = 48) ===
-            for (let i = 0; i < decoys.length; i++) {
-                for (let e = 0; e < emotions.length; e++) {
-                    allQuestions.push({
-                        q: `${s[decoys[i]]}'s phone buzzes. They look ${emotions[e]}.`,
-                        options: [
-                            { text: `"Who is it?"`, clue: `"Nobody!" They delete the message. "Just spam." But their hands are shaking.` },
-                            { text: `Note their reaction`, clue: `Whatever that message said, it changed their demeanor. They won't meet your eyes now.` }
-                        ]
-                    });
-                }
-            }
-
-            // === GENERATE ACCUSATION QUESTIONS (decoy accusing decoy = 30) ===
-            for (let i = 0; i < decoys.length; i++) {
-                for (let j = 0; j < decoys.length; j++) {
-                    if (i !== j) {
+                // === GENERATE PHONE QUESTIONS (decoy × emotion = 48) ===
+                for (let i = 0; i < decoys.length; i++) {
+                    for (let e = 0; e < emotions.length; e++) {
                         allQuestions.push({
-                            q: `${s[decoys[i]]} points at ${s[decoys[j]]}. "It was THEM. I know it."`,
+                            q: `${s[decoys[i]]}'s phone buzzes. They look ${emotions[e]}.`,
                             options: [
-                                { text: `"What's your proof?"`, clue: `"I... I just know! They were acting weird all day!" Weak evidence. Strong emotion.` },
-                                { text: `Watch ${s[decoys[j]]}'s reaction`, clue: `They look ${emotions[trueRandom(emotions.length)]}. Guilty? Or shocked at the accusation?` }
+                                { text: `"Who is it?"`, clue: `"Nobody!" They delete the message. "Just spam." But their hands are shaking.` },
+                                { text: `Note their reaction`, clue: `Whatever that message said, it changed their demeanor. They won't meet your eyes now.` }
                             ]
                         });
                     }
                 }
+
+                // === GENERATE ACCUSATION QUESTIONS (decoy accusing decoy = 30) ===
+                for (let i = 0; i < decoys.length; i++) {
+                    for (let j = 0; j < decoys.length; j++) {
+                        if (i !== j) {
+                            allQuestions.push({
+                                q: `${s[decoys[i]]} points at ${s[decoys[j]]}. "It was THEM. I know it."`,
+                                options: [
+                                    { text: `"What's your proof?"`, clue: `"I... I just know! They were acting weird all day!" Weak evidence. Strong emotion.` },
+                                    { text: `Watch ${s[decoys[j]]}'s reaction`, clue: `They look ${emotions[trueRandom(emotions.length)]}. Guilty? Or shocked at the accusation?` }
+                                ]
+                            });
+                        }
+                    }
+                }
+
+                // === CULPRIT HINT QUESTIONS (8 variations) ===
+                const culpritHints = [
+                    { q: `Wait. Where's ${s[culprit]}?`, opts: [`Look for them`, `You find them alone, staring out a window. They flinch when they see you.`, `Ask around`, `${s[decoys[0]]}: "Their room?" ${s[decoys[1]]}: "Outside." Which is it?`] },
+                    { q: `${s[culprit]} has been oddly quiet.`, opts: [`Notice the silence`, `Everyone else is panicking. ${s[culprit]}? Calm. Too calm.`, `Ask if they're okay`, `"I'm fine." But their voice wavers.`] },
+                    { q: `${s[culprit]} hasn't asked about ${d} once.`, opts: [`Interesting`, `Everyone else: "Where's ${d}?" But ${s[culprit]}? Silent. Like they already know.`, `Confront them`, `"Aren't you worried?" A long pause. "Of course."`] },
+                    { q: `${d} comes home and runs straight to ${s[culprit]}.`, opts: [`Dogs know`, `${d} passed everyone. Made a beeline. Like greeting an accomplice.`, `Coincidence?`, `${d}'s tail was wagging BEFORE reaching ${s[culprit]}.`] },
+                    { q: `${s[culprit]} keeps checking the clock.`, opts: [`Why?`, `Like they're waiting for something. Or counting down.`, `Ask them`, `"What? No reason." But they checked it again.`] },
+                    { q: `${s[culprit]}'s shoes are clean. Too clean.`, opts: [`They were supposedly outside`, `If they went to the backyard, where's the dirt?`, `Check the doormat`, `Fresh grass stains. Someone wiped their shoes recently.`] },
+                    { q: `${s[culprit]} knows details they shouldn't.`, opts: [`"How do you know that?"`, `"I... someone told me." Who? When?`, `Note it`, `They mentioned the ${escapeTime} before anyone else did.`] },
+                    { q: `Something's off about ${s[culprit]}'s alibi.`, opts: [`Cross-reference`, `They said they were in their room. But ${s[decoys[0]]} saw them downstairs.`, `Let it slide`, `For now. But you'll remember this.`] }
+                ];
+                culpritHints.forEach(h => {
+                    allQuestions.push({
+                        q: h.q,
+                        options: [
+                            { text: h.opts[0], clue: h.opts[1] },
+                            { text: h.opts[2], clue: h.opts[3] }
+                        ]
+                    });
+                });
+
+                // === REVELATION QUESTIONS (always at end) ===
+                const revelationQuestions = [
+                    { q: `Something clicks. You've been looking at this wrong.`, options: [{ text: `It was planned`, clue: `The door. The timing. The alibis. This wasn't an accident.` }, { text: `Someone's covering`, clue: `The lies protect someone. Family loyalty runs deep.` }] },
+                    { q: `You gather all the evidence in your mind.`, options: [{ text: `The timeline`, clue: `One person has no alibi for the critical 4 minutes.` }, { text: `The motive`, clue: `One person benefits from ${d} being "lost."` }] },
+                    { q: `It's time. You know who did it.`, options: [{ text: `Confront them now`, clue: `The room goes silent. One face goes pale.` }, { text: `Gather everyone first`, clue: `Maximum impact. Everyone will see the truth revealed.` }] }
+                ];
+
+                // Shuffle main questions, append revelations at end
+                fisherYatesShuffle(allQuestions);
+
+                // Log question count and first 3 questions for debugging
+                console.log('=== QUESTION GENERATION DEBUG ===');
+                console.log('Generated ' + allQuestions.length + ' questions');
+                console.log('First 3 questions after shuffle:');
+                console.log('  1:', allQuestions[0]?.q?.substring(0, 50));
+                console.log('  2:', allQuestions[1]?.q?.substring(0, 50));
+                console.log('  3:', allQuestions[2]?.q?.substring(0, 50));
+
+                // Store the full question bank (shuffled)
+                allQuestionBank = allQuestions;
+                console.log('allQuestionBank length:', allQuestionBank.length);
+
+                // Bonus questions - continue investigation
+                bonusQuestions = [
+                    {
+                        q: `A car pulls up. It's the Amazon driver from earlier.`,
+                        options: [
+                            { text: `"Did you see anything?"`, clue: `"Actually... yeah. Someone was in your backyard when I dropped off the package. Thought it was weird."` },
+                            { text: `"What time?"`, clue: `"Maybe 3:40? 3:45? There was definitely someone by that back fence."` }
+                        ]
+                    },
+                    {
+                        q: `You check the home security app. The door sensor has a log.`,
+                        options: [
+                            { text: `Back door opened`, clue: `${escapeTime}. Opened for 18 seconds. Closed. 18 seconds is enough to let a dog out and shut the door.` },
+                            { text: `Who was near it?`, clue: `The hallway motion sensor triggered 30 seconds before. Someone walked to that door. On purpose.` }
+                        ]
+                    },
+                    {
+                        q: `There's a voicemail on the house phone. From today.`,
+                        options: [
+                            { text: `Play it`, clue: `A neighbor: "Hey, just saw your dog heading down Oak Street. Is everything okay?" Timestamp: 3:52 PM.` },
+                            { text: `Who else heard it?`, clue: `The message was already marked "played." Someone listened to it and didn't tell anyone.` }
+                        ]
+                    },
+                    {
+                        q: `${s[decoys[2]]} approaches you. "I remembered something."`,
+                        options: [
+                            { text: `"Go on"`, clue: `"${s[culprit]} asked me earlier if ${d} liked the park. Random question. I thought nothing of it."` },
+                            { text: `"Why didn't you say earlier?"`, clue: `"I didn't connect it until now. But if they were planning to take ${d} somewhere..."` }
+                        ]
+                    },
+                    {
+                        q: `You find ${d}'s harness in the trash. Still hooked.`,
+                        options: [
+                            { text: `Someone took it off`, clue: `Unclipped perfectly. ${d} didn't wriggle free. Someone deliberately removed it before the escape.` },
+                            { text: `Ask who put it there`, clue: `Silence. Then ${s[culprit]}: "Maybe ${d} didn't want to wear it." First thing they've said all investigation.` }
+                        ]
+                    }
+                ];
+                console.log('Bonus questions created:', bonusQuestions.length);
             }
 
-            // === CULPRIT HINT QUESTIONS (8 variations) ===
-            const culpritHints = [
-                { q: `Wait. Where's ${s[culprit]}?`, opts: [`Look for them`, `You find them alone, staring out a window. They flinch when they see you.`, `Ask around`, `${s[decoys[0]]}: "Their room?" ${s[decoys[1]]}: "Outside." Which is it?`] },
-                { q: `${s[culprit]} has been oddly quiet.`, opts: [`Notice the silence`, `Everyone else is panicking. ${s[culprit]}? Calm. Too calm.`, `Ask if they're okay`, `"I'm fine." But their voice wavers.`] },
-                { q: `${s[culprit]} hasn't asked about ${d} once.`, opts: [`Interesting`, `Everyone else: "Where's ${d}?" But ${s[culprit]}? Silent. Like they already know.`, `Confront them`, `"Aren't you worried?" A long pause. "Of course."`] },
-                { q: `${d} comes home and runs straight to ${s[culprit]}.`, opts: [`Dogs know`, `${d} passed everyone. Made a beeline. Like greeting an accomplice.`, `Coincidence?`, `${d}'s tail was wagging BEFORE reaching ${s[culprit]}.`] },
-                { q: `${s[culprit]} keeps checking the clock.`, opts: [`Why?`, `Like they're waiting for something. Or counting down.`, `Ask them`, `"What? No reason." But they checked it again.`] },
-                { q: `${s[culprit]}'s shoes are clean. Too clean.`, opts: [`They were supposedly outside`, `If they went to the backyard, where's the dirt?`, `Check the doormat`, `Fresh grass stains. Someone wiped their shoes recently.`] },
-                { q: `${s[culprit]} knows details they shouldn't.`, opts: [`"How do you know that?"`, `"I... someone told me." Who? When?`, `Note it`, `They mentioned the ${escapeTime} before anyone else did.`] },
-                { q: `Something's off about ${s[culprit]}'s alibi.`, opts: [`Cross-reference`, `They said they were in their room. But ${s[decoys[0]]} saw them downstairs.`, `Let it slide`, `For now. But you'll remember this.`] }
-            ];
-            culpritHints.forEach(h => {
-                allQuestions.push({
-                    q: h.q,
-                    options: [
-                        { text: h.opts[0], clue: h.opts[1] },
-                        { text: h.opts[2], clue: h.opts[3] }
-                    ]
-                });
-            });
+            function loadPhaseQuestions() {
+                // Get 10 questions for this phase from the bank
+                const startIdx = (currentPhase - 1) * questionsPerPhase;
+                phaseQuestions = allQuestionBank.slice(startIdx, startIdx + questionsPerPhase);
+                currentQuestion = 0;
 
-            // === REVELATION QUESTIONS (always at end) ===
-            const revelationQuestions = [
-                { q: `Something clicks. You've been looking at this wrong.`, options: [{ text: `It was planned`, clue: `The door. The timing. The alibis. This wasn't an accident.` }, { text: `Someone's covering`, clue: `The lies protect someone. Family loyalty runs deep.` }] },
-                { q: `You gather all the evidence in your mind.`, options: [{ text: `The timeline`, clue: `One person has no alibi for the critical 4 minutes.` }, { text: `The motive`, clue: `One person benefits from ${d} being "lost."` }] },
-                { q: `It's time. You know who did it.`, options: [{ text: `Confront them now`, clue: `The room goes silent. One face goes pale.` }, { text: `Gather everyone first`, clue: `Maximum impact. Everyone will see the truth revealed.` }] }
-            ];
+                console.log('=== PHASE LOAD DEBUG ===');
+                console.log('currentPhase:', currentPhase);
+                console.log('startIdx:', startIdx);
+                console.log('allQuestionBank length:', allQuestionBank.length);
+                console.log('phaseQuestions length:', phaseQuestions.length);
+                console.log('First phase question:', phaseQuestions[0]?.q?.substring(0, 50));
+                console.log('Second phase question:', phaseQuestions[1]?.q?.substring(0, 50));
+            }
 
-            // Shuffle main questions, append revelations at end
-            fisherYatesShuffle(allQuestions);
+            function startQuestions() {
+                currentQuestion = 0;
+                currentPhase = 1;
+                loadPhaseQuestions();
+                showScreen('questionScreen');
+                showQuestion();
+            }
 
-            // Log question count and first 3 questions for debugging
-            console.log('=== QUESTION GENERATION DEBUG ===');
-            console.log('Generated ' + allQuestions.length + ' questions');
-            console.log('First 3 questions after shuffle:');
-            console.log('  1:', allQuestions[0]?.q?.substring(0, 50));
-            console.log('  2:', allQuestions[1]?.q?.substring(0, 50));
-            console.log('  3:', allQuestions[2]?.q?.substring(0, 50));
+            function showQuestion() {
+                const q = phaseQuestions[currentQuestion];
+                const total = inBonusRound ? 5 : questionsPerPhase;
+                const current = inBonusRound ? bonusQuestionsAsked + 1 : currentQuestion + 1;
 
-            // Store the full question bank (shuffled)
-            allQuestionBank = allQuestions;
-            console.log('allQuestionBank length:', allQuestionBank.length);
+                document.getElementById('progressFill').style.width = `${(current / total) * 100}%`;
+                document.getElementById('questionNum').textContent = inBonusRound ?
+                    `BONUS ${bonusQuestionsAsked + 1}/5` :
+                    `PHASE ${currentPhase} - QUESTION ${currentQuestion + 1}/${questionsPerPhase}`;
+                document.getElementById('questionText').textContent = q.q;
 
-            // Bonus questions - continue investigation
-            bonusQuestions = [
-                {
-                    q: `A car pulls up. It's the Amazon driver from earlier.`,
-                    options: [
-                        { text: `"Did you see anything?"`, clue: `"Actually... yeah. Someone was in your backyard when I dropped off the package. Thought it was weird."` },
-                        { text: `"What time?"`, clue: `"Maybe 3:40? 3:45? There was definitely someone by that back fence."` }
-                    ]
-                },
-                {
-                    q: `You check the home security app. The door sensor has a log.`,
-                    options: [
-                        { text: `Back door opened`, clue: `${escapeTime}. Opened for 18 seconds. Closed. 18 seconds is enough to let a dog out and shut the door.` },
-                        { text: `Who was near it?`, clue: `The hallway motion sensor triggered 30 seconds before. Someone walked to that door. On purpose.` }
-                    ]
-                },
-                {
-                    q: `There's a voicemail on the house phone. From today.`,
-                    options: [
-                        { text: `Play it`, clue: `A neighbor: "Hey, just saw your dog heading down Oak Street. Is everything okay?" Timestamp: 3:52 PM.` },
-                        { text: `Who else heard it?`, clue: `The message was already marked "played." Someone listened to it and didn't tell anyone.` }
-                    ]
-                },
-                {
-                    q: `${s[decoys[2]]} approaches you. "I remembered something."`,
-                    options: [
-                        { text: `"Go on"`, clue: `"${s[culprit]} asked me earlier if ${d} liked the park. Random question. I thought nothing of it."` },
-                        { text: `"Why didn't you say earlier?"`, clue: `"I didn't connect it until now. But if they were planning to take ${d} somewhere..."` }
-                    ]
-                },
-                {
-                    q: `You find ${d}'s harness in the trash. Still hooked.`,
-                    options: [
-                        { text: `Someone took it off`, clue: `Unclipped perfectly. ${d} didn't wriggle free. Someone deliberately removed it before the escape.` },
-                        { text: `Ask who put it there`, clue: `Silence. Then ${s[culprit]}: "Maybe ${d} didn't want to wear it." First thing they've said all investigation.` }
-                    ]
-                }
-            ];
-            console.log('Bonus questions created:', bonusQuestions.length);
-        }
-
-        function loadPhaseQuestions() {
-            // Get 10 questions for this phase from the bank
-            const startIdx = (currentPhase - 1) * questionsPerPhase;
-            phaseQuestions = allQuestionBank.slice(startIdx, startIdx + questionsPerPhase);
-            currentQuestion = 0;
-
-            console.log('=== PHASE LOAD DEBUG ===');
-            console.log('currentPhase:', currentPhase);
-            console.log('startIdx:', startIdx);
-            console.log('allQuestionBank length:', allQuestionBank.length);
-            console.log('phaseQuestions length:', phaseQuestions.length);
-            console.log('First phase question:', phaseQuestions[0]?.q?.substring(0, 50));
-            console.log('Second phase question:', phaseQuestions[1]?.q?.substring(0, 50));
-        }
-
-        function startQuestions() {
-            currentQuestion = 0;
-            currentPhase = 1;
-            loadPhaseQuestions();
-            showScreen('questionScreen');
-            showQuestion();
-        }
-
-        function showQuestion() {
-            const q = phaseQuestions[currentQuestion];
-            const total = inBonusRound ? 5 : questionsPerPhase;
-            const current = inBonusRound ? bonusQuestionsAsked + 1 : currentQuestion + 1;
-
-            document.getElementById('progressFill').style.width = `${(current / total) * 100}%`;
-            document.getElementById('questionNum').textContent = inBonusRound ?
-                `BONUS ${bonusQuestionsAsked + 1}/5` :
-                `PHASE ${currentPhase} - QUESTION ${currentQuestion + 1}/${questionsPerPhase}`;
-            document.getElementById('questionText').textContent = q.q;
-
-            // Show evidence image if available
-            let imageHtml = '';
-            if (q.image) {
-                imageHtml = `<div class="evidence-container">
+                // Show evidence image if available
+                let imageHtml = '';
+                if (q.image) {
+                    imageHtml = `<div class="evidence-container">
                     <img src="${q.image}" alt="Evidence" class="evidence-image">
                 </div>`;
-            }
-            document.getElementById('clueArea').innerHTML = imageHtml;
+                }
+                document.getElementById('clueArea').innerHTML = imageHtml;
 
-            const optionsHtml = q.options.map((opt, i) =>
-                `<div class="option" onclick="selectAnswer(${i})">${opt.text}</div>`
-            ).join('');
-            document.getElementById('optionsArea').innerHTML = optionsHtml;
+                const optionsHtml = q.options.map((opt, i) =>
+                    `<div class="option" onclick="selectAnswer(${i})">${opt.text}</div>`
+                ).join('');
+                document.getElementById('optionsArea').innerHTML = optionsHtml;
 
-            updateNotebook('notebook');
-        }
-
-        function selectAnswer(index) {
-            const q = inBonusRound ? bonusQuestions[bonusQuestionsAsked] : phaseQuestions[currentQuestion];
-            const selected = q.options[index];
-
-            // Check if this is a dramatic moment
-            const isDramatic = q.q.includes('TWIST') || q.q.includes('BOMBSHELL') || q.q.includes('SHOCKING') || q.q.includes('CONFESSION') || q.q.includes('BREAKTHROUGH') || q.q.includes('FINAL');
-            const clueClass = isDramatic ? 'twist' : 'clue';
-
-            // Play appropriate sound effect
-            if (isDramatic) {
-                playSFX('twist');
-                // Add screen shake for dramatic moments
-                document.querySelector('.container').classList.add('shake');
-                setTimeout(() => document.querySelector('.container').classList.remove('shake'), 500);
-            } else {
-                playSFX('reveal');
+                updateNotebook('notebook');
             }
 
-            // Keep image if present, add clue below
-            const existingImage = q.image ? `<div class="evidence-container">
+            function selectAnswer(index) {
+                const q = inBonusRound ? bonusQuestions[bonusQuestionsAsked] : phaseQuestions[currentQuestion];
+                const selected = q.options[index];
+
+                // Check if this is a dramatic moment
+                const isDramatic = q.q.includes('TWIST') || q.q.includes('BOMBSHELL') || q.q.includes('SHOCKING') || q.q.includes('CONFESSION') || q.q.includes('BREAKTHROUGH') || q.q.includes('FINAL');
+                const clueClass = isDramatic ? 'twist' : 'clue';
+
+                // Play appropriate sound effect
+                if (isDramatic) {
+                    playSFX('twist');
+                    // Add screen shake for dramatic moments
+                    document.querySelector('.container').classList.add('shake');
+                    setTimeout(() => document.querySelector('.container').classList.remove('shake'), 500);
+                } else {
+                    playSFX('reveal');
+                }
+
+                // Keep image if present, add clue below
+                const existingImage = q.image ? `<div class="evidence-container">
                 <img src="${q.image}" alt="Evidence" class="evidence-image">
             </div>` : '';
-            document.getElementById('clueArea').innerHTML = existingImage + `<div class="${clueClass}">${selected.clue}</div>`;
+                document.getElementById('clueArea').innerHTML = existingImage + `<div class="${clueClass}">${selected.clue}</div>`;
 
-            cluesFound.push(selected.clue);
-            updateNotebook('notebook');
+                cluesFound.push(selected.clue);
+                updateNotebook('notebook');
 
-            document.querySelectorAll('.option').forEach(opt => {
-                opt.style.pointerEvents = 'none';
-                opt.style.opacity = '0.5';
-            });
-            document.querySelectorAll('.option')[index].style.opacity = '1';
+                document.querySelectorAll('.option').forEach(opt => {
+                    opt.style.pointerEvents = 'none';
+                    opt.style.opacity = '0.5';
+                });
+                document.querySelectorAll('.option')[index].style.opacity = '1';
 
-            // Add Continue button instead of auto-advancing
-            document.getElementById('optionsArea').innerHTML += `
+                // Add Continue button instead of auto-advancing
+                document.getElementById('optionsArea').innerHTML += `
                 <button class="btn continue-btn" onclick="advanceQuestion()" style="margin-top: 1.5rem;">
                     ➡️ CONTINUE
                 </button>
             `;
-        }
+            }
 
-        function advanceQuestion() {
-            if (inBonusRound) {
-                bonusQuestionsAsked++;
-                if (bonusQuestionsAsked >= 5) {
-                    // After 5 bonus questions, auto-reveal culprit
-                    inBonusRound = false;
-                    bonusQuestionsAsked = 0;
-                    showResult(false); // Auto-reveal
+            function advanceQuestion() {
+                if (inBonusRound) {
+                    bonusQuestionsAsked++;
+                    if (bonusQuestionsAsked >= 5) {
+                        // After 5 bonus questions, auto-reveal culprit
+                        inBonusRound = false;
+                        bonusQuestionsAsked = 0;
+                        showResult(false); // Auto-reveal
+                    } else {
+                        showBonusQuestion();
+                    }
                 } else {
-                    showBonusQuestion();
-                }
-            } else {
-                currentQuestion++;
-                if (currentQuestion >= questionsPerPhase) {
-                    // End of phase - time to guess
-                    showGuessScreen();
-                } else {
-                    showQuestion();
+                    currentQuestion++;
+                    if (currentQuestion >= questionsPerPhase) {
+                        // End of phase - time to guess
+                        showGuessScreen();
+                    } else {
+                        showQuestion();
+                    }
                 }
             }
-        }
 
-        function showBonusQuestion() {
-            const q = bonusQuestions[bonusQuestionsAsked];
+            function showBonusQuestion() {
+                const q = bonusQuestions[bonusQuestionsAsked];
 
-            document.getElementById('progressFill').style.width = `${((bonusQuestionsAsked + 1) / 5) * 100}%`;
-            document.getElementById('questionNum').textContent = `BONUS QUESTION ${bonusQuestionsAsked + 1}/5`;
-            document.getElementById('questionText').textContent = q.q;
-            document.getElementById('clueArea').innerHTML = '';
+                document.getElementById('progressFill').style.width = `${((bonusQuestionsAsked + 1) / 5) * 100}%`;
+                document.getElementById('questionNum').textContent = `BONUS QUESTION ${bonusQuestionsAsked + 1}/5`;
+                document.getElementById('questionText').textContent = q.q;
+                document.getElementById('clueArea').innerHTML = '';
 
-            const optionsHtml = q.options.map((opt, i) =>
-                `<div class="option" onclick="selectAnswer(${i})">${opt.text}</div>`
-            ).join('');
-            document.getElementById('optionsArea').innerHTML = optionsHtml;
-
-            updateNotebook('notebook');
-            showScreen('questionScreen');
-        }
-
-        function showGuessScreen() {
-            document.getElementById('dogNameGuess').textContent = dog;
-            document.getElementById('guessesLeft').textContent = `⚠️ ${guessesLeft} guess${guessesLeft !== 1 ? 'es' : ''} remaining`;
-
-            const grid = suspects.map((s, i) =>
-                `<div class="suspect-btn" onclick="makeGuess(${i})">${s}</div>`
-            ).join('');
-            document.getElementById('suspectsGrid').innerHTML = grid;
-
-            updateNotebook('notebookGuess');
-            showScreen('guessScreen');
-        }
-
-        function updateNotebook(elementId) {
-            const container = document.getElementById(elementId);
-            const cluesContainer = document.getElementById(elementId === 'notebook' ? 'notebookClues' : 'notebookCluesGuess');
-
-            if (cluesFound.length > 0) {
-                container.style.display = 'block';
-                cluesContainer.innerHTML = cluesFound.map(c =>
-                    `<div class="notebook-clue">• ${c.replace(/<[^>]*>/g, '')}</div>`
+                const optionsHtml = q.options.map((opt, i) =>
+                    `<div class="option" onclick="selectAnswer(${i})">${opt.text}</div>`
                 ).join('');
+                document.getElementById('optionsArea').innerHTML = optionsHtml;
+
+                updateNotebook('notebook');
+                showScreen('questionScreen');
             }
-        }
 
-        function makeGuess(index) {
-            if (index === culprit) {
-                playSFX('correct');
-                showResult(true);
-            } else {
-                playSFX('wrong');
-                // Shake on wrong guess
-                document.querySelector('.container').classList.add('shake');
-                setTimeout(() => document.querySelector('.container').classList.remove('shake'), 500);
+            function showGuessScreen() {
+                document.getElementById('dogNameGuess').textContent = dog;
+                document.getElementById('guessesLeft').textContent = `⚠️ ${guessesLeft} guess${guessesLeft !== 1 ? 'es' : ''} remaining`;
 
-                if (currentPhase < maxPhases) {
-                    // Move to next phase
-                    currentPhase++;
-                    loadPhaseQuestions();
-                    document.getElementById('wrongMessage').innerHTML = `
+                const grid = suspects.map((s, i) =>
+                    `<div class="suspect-btn" onclick="makeGuess(${i})">${s}</div>`
+                ).join('');
+                document.getElementById('suspectsGrid').innerHTML = grid;
+
+                updateNotebook('notebookGuess');
+                showScreen('guessScreen');
+            }
+
+            function updateNotebook(elementId) {
+                const container = document.getElementById(elementId);
+                const cluesContainer = document.getElementById(elementId === 'notebook' ? 'notebookClues' : 'notebookCluesGuess');
+
+                if (cluesFound.length > 0) {
+                    container.style.display = 'block';
+                    cluesContainer.innerHTML = cluesFound.map(c =>
+                        `<div class="notebook-clue">• ${c.replace(/<[^>]*>/g, '')}</div>`
+                    ).join('');
+                }
+            }
+
+            function makeGuess(index) {
+                if (index === culprit) {
+                    playSFX('correct');
+                    showResult(true);
+                } else {
+                    playSFX('wrong');
+                    // Shake on wrong guess
+                    document.querySelector('.container').classList.add('shake');
+                    setTimeout(() => document.querySelector('.container').classList.remove('shake'), 500);
+
+                    if (currentPhase < maxPhases) {
+                        // Move to next phase
+                        currentPhase++;
+                        loadPhaseQuestions();
+                        document.getElementById('wrongMessage').innerHTML = `
                         ❌ It wasn't <strong>${suspects[index]}</strong>!<br>
                         <em>Phase ${currentPhase} beginning... Keep investigating!</em>
                     `;
-                    showScreen('wrongScreen');
-                } else {
-                    // After phase 3, go to bonus round
-                    document.getElementById('wrongMessage').innerHTML = `
+                        showScreen('wrongScreen');
+                    } else {
+                        // After phase 3, go to bonus round
+                        document.getElementById('wrongMessage').innerHTML = `
                         ❌ It wasn't <strong>${suspects[index]}</strong>!<br>
                         <em>Final chance! 5 bonus clues before the truth is revealed...</em>
                     `;
-                    showScreen('wrongScreen');
-                    // Set flag to go to bonus after wrongScreen
-                    window.goToBonusAfterWrong = true;
+                        showScreen('wrongScreen');
+                        // Set flag to go to bonus after wrongScreen
+                        window.goToBonusAfterWrong = true;
+                    }
                 }
             }
-        }
 
-        function continueBonusQuestions() {
-            if (window.goToBonusAfterWrong) {
-                window.goToBonusAfterWrong = false;
-                inBonusRound = true;
-                bonusQuestionsAsked = 0;
-                showBonusQuestion();
-            } else {
-                // Continue to next phase
-                showScreen('questionScreen');
-                showQuestion();
+            function continueBonusQuestions() {
+                if (window.goToBonusAfterWrong) {
+                    window.goToBonusAfterWrong = false;
+                    inBonusRound = true;
+                    bonusQuestionsAsked = 0;
+                    showBonusQuestion();
+                } else {
+                    // Continue to next phase
+                    showScreen('questionScreen');
+                    showQuestion();
+                }
             }
-        }
 
-        function showResult(won) {
-            const icon = won ? '🎉' : '😭';
-            const title = won ? `YOU SOLVED IT!` : `CASE CLOSED`;
-            const text = won ?
-                `Congratulations, ${detective}! You figured out that <strong>${suspects[culprit]}</strong> let ${dog} out!<br><br>${getMotiveText()}` :
-                `The truth comes out: It was <strong>${suspects[culprit]}</strong> who let ${dog} out all along!<br><br>${getMotiveText()}`;
+            function showResult(won) {
+                const icon = won ? '🎉' : '😭';
+                const title = won ? `YOU SOLVED IT!` : `CASE CLOSED`;
+                const text = won ?
+                    `Congratulations, ${detective}! You figured out that <strong>${suspects[culprit]}</strong> let ${dog} out!<br><br>${getMotiveText()}` :
+                    `The truth comes out: It was <strong>${suspects[culprit]}</strong> who let ${dog} out all along!<br><br>${getMotiveText()}`;
 
-            document.getElementById('resultIcon').textContent = icon;
-            document.getElementById('resultTitle').textContent = title;
-            document.getElementById('resultTitle').style.color = won ? '#4ade80' : '#f87171';
-            document.getElementById('resultText').innerHTML = text;
+                document.getElementById('resultIcon').textContent = icon;
+                document.getElementById('resultTitle').textContent = title;
+                document.getElementById('resultTitle').style.color = won ? '#4ade80' : '#f87171';
+                document.getElementById('resultText').innerHTML = text;
 
-            // Dramatic reveal animation
-            document.querySelector('.container').classList.add('glitch');
-            setTimeout(() => document.querySelector('.container').classList.remove('glitch'), 600);
+                // Dramatic reveal animation
+                document.querySelector('.container').classList.add('glitch');
+                setTimeout(() => document.querySelector('.container').classList.remove('glitch'), 600);
 
-            showScreen('resultScreen');
-        }
+                showScreen('resultScreen');
+            }
 
-        function getMotiveText() {
-            const motives = [
-                `${suspects[culprit]} said: "I just wanted ${dog} to have some freedom! Is that so wrong?!"`,
-                `${suspects[culprit]} confessed: "I was trying to give ${dog} a treat and the door slipped!"`,
-                `${suspects[culprit]} admitted: "I was on my phone and didn't notice ${dog} run out..."`,
-                `${suspects[culprit]} claimed: "It was an accident! ${dog} pushed past me!"`,
-                `${suspects[culprit]} revealed: "${dog} gave me the puppy eyes. I couldn't say no."`,
-                `${suspects[culprit]} explained: "I thought ${dog} would just stay in the yard!"`,
-                `${suspects[culprit]} said: "Listen, ${dog} is very persuasive, okay?"`
-            ];
-            return motives[culprit];
-        }
+            function getMotiveText() {
+                const motives = [
+                    `${suspects[culprit]} said: "I just wanted ${dog} to have some freedom! Is that so wrong?!"`,
+                    `${suspects[culprit]} confessed: "I was trying to give ${dog} a treat and the door slipped!"`,
+                    `${suspects[culprit]} admitted: "I was on my phone and didn't notice ${dog} run out..."`,
+                    `${suspects[culprit]} claimed: "It was an accident! ${dog} pushed past me!"`,
+                    `${suspects[culprit]} revealed: "${dog} gave me the puppy eyes. I couldn't say no."`,
+                    `${suspects[culprit]} explained: "I thought ${dog} would just stay in the yard!"`,
+                    `${suspects[culprit]} said: "Listen, ${dog} is very persuasive, okay?"`
+                ];
+                return motives[culprit];
+            }
 
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-    </script>
+            function showScreen(id) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+            }
+        </script>
 </body>
 
 </html>
