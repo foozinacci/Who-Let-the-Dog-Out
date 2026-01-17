@@ -1329,183 +1329,169 @@
             const shuffle = arr => arr.sort(() => Math.random() - 0.5);
             shuffle(decoys);
 
-            // All questions designed for maximum misdirection
+            // DIVERSE INVESTIGATION MECHANICS - Each question type is unique
             const allQuestions = [
-                // ACT 1: THE SETUP - Everyone has motive
+                // === PHYSICAL EVIDENCE EXAMINATION ===
                 {
-                    q: `🔍 You examine the back door. What catches your eye?`,
+                    q: `🔬 FORENSICS: You dust the door handle for prints. Results are in.`,
                     image: 'images/crime_scene.png',
                     options: [
-                        { text: `Scratches on the handle`, clue: `Deep scratches... like someone was in a hurry. Or ${d} was trying to get back IN?` },
-                        { text: `A partial footprint`, clue: `Too smudged to identify. Could be anyone. Could be everyone.` }
+                        { text: `Analyze the print patterns`, clue: `Four distinct prints overlap. The topmost belongs to... someone who wears rings. ${s[decoys[2]]} wears rings. So does ${s[culprit]}.` },
+                        { text: `Check the print timeline`, clue: `The freshest print was left approximately 47 minutes ago—right when ${d} vanished. But prints don't identify WHO. Just WHEN.` }
                     ]
                 },
                 {
-                    q: `${s[decoys[0]]} approaches you nervously. "I need to tell you something..."`,
+                    q: `🧪 LAB RESULTS: Hair samples from near the escape point are back.`,
+                    options: [
+                        { text: `Human or animal?`, clue: `Both. ${d}'s fur is everywhere—but there's also a single human hair. Color matches ${s[decoys[4]]} AND ${s[decoys[0]]}. Inconclusive.` },
+                        { text: `Any foreign substances?`, clue: `Traces of dog treats. Premium brand. Someone was LURING ${d} outside.` }
+                    ]
+                },
+
+                // === TIMELINE RECONSTRUCTION ===
+                {
+                    q: `📊 TIMELINE: You map everyone's movements between 3:30 PM and 4:00 PM.`,
+                    options: [
+                        { text: `Cross-reference alibis`, clue: `${s[decoys[1]]} claims they were with ${s[decoys[3]]}. But ${s[decoys[3]]} says they were ALONE. Someone is lying.` },
+                        { text: `Find gaps in coverage`, clue: `Between 3:44 and 3:48 PM, NOBODY can account for ${s[culprit]}'s whereabouts. A four-minute black hole.` }
+                    ]
+                },
+                {
+                    q: `⏰ You create a minute-by-minute breakdown. Something doesn't add up...`,
+                    options: [
+                        { text: `${s[decoys[2]]} says they heard the door at 3:45`, clue: `But ${s[decoys[5]]} claims the door was still closed at 3:47. A 2-minute discrepancy. The door can't be both.` },
+                        { text: `Everyone remembers the time differently`, clue: `${s[0]}: \"3:40-ish.\" ${s[3]}: \"Definitely after 3:50.\" ${s[6]}: \"What door?\" Their memories are unreliable—or manufactured.` }
+                    ]
+                },
+
+                // === WITNESS INTERROGATION ===
+                {
+                    q: `🎤 INTERROGATION: You sit ${s[decoys[0]]} down. The light is in their face.`,
                     image: 'images/interrogation.png',
                     options: [
-                        { text: `Listen closely`, clue: `"I... I saw ${s[decoys[1]]} near the door earlier. They looked suspicious." But ${s[decoys[0]]} won't make eye contact.` },
-                        { text: `Ask why they're nervous`, clue: `${s[decoys[0]]} goes pale. "I'm not nervous! I just... I have allergies!" They clearly don't have allergies.` }
+                        { text: `\"Tell me about ${s[decoys[1]]}\"`, clue: `Their eyes dart left—accessing memory, not imagination. \"${s[decoys[1]]} was acting weird. Kept checking the back window.\" Interesting.` },
+                        { text: `\"Where were YOU at 3:46?\"`, clue: `They blink rapidly. \"In... in my room. Reading.\" You found no book on their nightstand. Reading what, exactly?` }
                     ]
                 },
                 {
-                    q: `🚨 TWIST: You find ${d}'s favorite toy hidden under a pillow in ${s[decoys[1]]}'s room!`,
+                    q: `🔊 You play the audio clip for ${s[decoys[3]]}. \"Do you recognize this voice?\"`,
                     options: [
-                        { text: `Confront them immediately`, clue: `${s[decoys[1]]} panics: "I was hiding it so ${d} would come back for it!" ...Is that genius or insane?` },
-                        { text: `Keep it secret for now`, clue: `You pocket the evidence. ${s[decoys[1]]} doesn't know you know. Yet.` }
+                        { text: `Watch their reaction`, clue: `Their face goes white. They KNOW that voice. But they say \"No idea.\" Their hands are shaking.` },
+                        { text: `\"It sounds like YOU\"`, clue: `\"That's ridiculous!\" they snap. Too defensive. Too fast. Guilty reaction—or innocent panic?` }
                     ]
                 },
+
+                // === EVIDENCE RECONSTRUCTION ===
                 {
-                    q: `${s[decoys[2]]} and ${s[decoys[3]]} are whispering in the corner. They stop when they see you.`,
-                    options: [
-                        { text: `Demand to know what they said`, clue: `They exchange a look. ${s[decoys[2]]}: "Nothing!" ${s[decoys[3]]}: "We were talking about the weather!" It's not raining.` },
-                        { text: `Pretend you didn't notice`, clue: `You hear ${s[decoys[3]]} whisper: "...can't let them find out about the door..." WHAT DOOR?` }
-                    ]
-                },
-                {
-                    q: `You check phone records. Someone texted "is the coast clear?" at 3:42 PM.`,
-                    options: [
-                        { text: `Trace the number`, clue: `The number is... burner? No wait—it's ${s[decoys[4]]}'s old phone. Why do they have TWO phones?` },
-                        { text: `Check who received it`, clue: `The message went to... a number not in anyone's contacts. A mystery accomplice?` }
-                    ]
-                },
-                {
-                    q: `🚨 TWIST: ${s[decoys[0]]} suddenly "remembers" seeing ${d} outside at 3:30 PM!`,
-                    options: [
-                        { text: `But the escape was at 3:47...`, clue: `Exactly. Either ${s[decoys[0]]} is lying, confused, or... ${d} escaped TWICE?!` },
-                        { text: `Ask for more details`, clue: `${s[decoys[0]]}'s story keeps changing. First it was by the fence. Then the garden. Now suddenly it was near ${s[decoys[5]]}'s car.` }
-                    ]
-                },
-                {
-                    q: `You find a torn piece of paper with handwriting: "Don't forget to—" The rest is missing.`,
+                    q: `🧩 RECONSTRUCTION: You arrange the physical evidence on the table.`,
                     image: 'images/torn_note.png',
                     options: [
-                        { text: `Compare handwriting samples`, clue: `It matches ${s[decoys[2]]}'s handwriting! But they claim they've "never seen that paper before in their life."` },
-                        { text: `Search for the other half`, clue: `You find it in the trash: "—lock the door after." WHO WROTE THIS?` }
+                        { text: `Look for connections`, clue: `The torn note, the treat crumbs, the muddy prints—they form a TRAIL. Someone planned this. Someone prepared ${d}'s favorite snacks.` },
+                        { text: `Find what's missing`, clue: `${d}'s leash is here. The collar is here. But where's the harness? ${d} was wearing a harness that day. WHO TOOK IT OFF?` }
                     ]
                 },
                 {
-                    q: `${s[decoys[3]]} has mud on their shoes. Fresh mud.`,
+                    q: `📱 DIGITAL FORENSICS: You inspect ${s[decoys[4]]}'s phone with permission.`,
+                    options: [
+                        { text: `Check location history`, clue: `GPS shows them in the backyard at 3:41 PM. They claimed to be in the kitchen ALL afternoon. Caught in a lie.` },
+                        { text: `Search their messages`, clue: `Nothing incriminating... wait. A deleted message from ${s[decoys[2]]}: \"Is it done?\" Sent at 3:52 PM. Done? WHAT'S DONE?` }
+                    ]
+                },
+
+                // === PSYCHOLOGICAL PROFILING ===
+                {
+                    q: `🧠 PROFILING: You study everyone's behavior since ${d} disappeared.`,
                     image: 'images/paw_prints.png',
                     options: [
-                        { text: `"Where were you?"`, clue: `"The garden!" But it hasn't rained in days. Where did the mud come from?` },
-                        { text: `Check where the mud matches`, clue: `The mud matches the backyard... exactly where ${d} escaped from. Coincidence?` }
+                        { text: `Who's acting guilty?`, clue: `${s[decoys[0]]} can't stop apologizing. ${s[decoys[3]]} won't make eye contact. But ${s[culprit]}? Unnervingly calm. Almost... relieved?` },
+                        { text: `Who has motive?`, clue: `${s[decoys[1]]} complained about ${d}'s barking last week. ${s[4]} owes money and ${d} is expensive. ${s[decoys[5]]} wanted a cat instead. Everyone has motive.` }
                     ]
                 },
-                // ACT 2: THE MISDIRECTION - Everything points wrong
                 {
-                    q: `🚨 BOMBSHELL: Security footage shows someone at the door at 3:45 PM... but the face is obscured!`,
+                    q: `💭 You observe the group dynamics. Alliances are forming.`,
+                    options: [
+                        { text: `Who's defending who?`, clue: `${s[decoys[2]]} keeps making excuses for ${s[decoys[4]]}. \"They would NEVER!\" Why so protective? What do they know?` },
+                        { text: `Who's pointing fingers?`, clue: `${s[decoys[1]]} has accused three different people in the last hour. Deflection tactic? Or genuine confusion?` }
+                    ]
+                },
+
+                // === MOTIVE INVESTIGATION ===
+                {
+                    q: `💰 MOTIVE: You dig into everyone's relationship with ${d}.`,
+                    options: [
+                        { text: `Financial angle`, clue: `${d}'s vet bills are $400/month. ${s[decoys[3]]} recently complained about \"that money pit.\" Cold. But would they act on it?` },
+                        { text: `Emotional angle`, clue: `${s[decoys[5]]} felt \"replaced\" when ${d} arrived. Classic sibling jealousy. But enough to sabotage the family pet? Maybe.` }
+                    ]
+                },
+                {
+                    q: `📝 You search for any recent searches or notes about ${d}.`,
+                    options: [
+                        { text: `Check browser histories`, clue: `${s[decoys[4]]} searched \"how long can dogs survive outside\" last Tuesday. Concerning. Very concerning.` },
+                        { text: `Look for physical notes`, clue: `In ${s[decoys[2]]}'s drawer: a list of \"dog-friendly parks within walking distance.\" Planning an adventure... or an escape?` }
+                    ]
+                },
+
+                // === CROSS-EXAMINATION ===
+                {
+                    q: `⚖️ CONTRADICTION: ${s[decoys[1]]}'s story doesn't match the evidence.`,
+                    options: [
+                        { text: `Confront them directly`, clue: `\"You said you were upstairs. But we found your jacket by the back door.\" They stammer: \"I... I must have left it there earlier!\" Weak.` },
+                        { text: `Let them keep talking`, clue: `Given enough rope, they hang themselves. \"I definitely didn't touch that door at 3:45.\" You never mentioned 3:45. They just revealed they know the exact time.` }
+                    ]
+                },
+                {
+                    q: `🚨 BOMBSHELL: The security camera wasn't broken. It was PAUSED.`,
                     image: 'images/security_camera.png',
                     options: [
-                        { text: `Analyze the clothing`, clue: `Blue hoodie. ${s[decoys[1]]}, ${s[decoys[4]]}, AND ${s[culprit]} all own blue hoodies. Dead end.` },
-                        { text: `Check the height`, clue: `Medium height. That eliminates... nobody. Everyone in this house is medium height apparently.` }
+                        { text: `Who has the app password?`, clue: `Only ${s[0]}, ${s[1]}, and ${s[culprit]} know the password. Two people are now prime suspects.` },
+                        { text: `When was it paused?`, clue: `Paused at 3:43 PM. Resumed at 3:51 PM. An 8-minute window. Plenty of time to let ${d} out and cover tracks.` }
+                    ]
+                },
+
+                // === ENVIRONMENTAL ANALYSIS ===
+                {
+                    q: `🌦️ WEATHER DATA: You check conditions at the time of escape.`,
+                    options: [
+                        { text: `Wind direction`, clue: `Wind was blowing INTO the house. The door couldn't have \"blown open.\" Someone PULLED it open.` },
+                        { text: `Temperature`, clue: `It was 72°F. Perfect weather. ${d} loves being outside in 72°F weather. Someone knew this.` }
                     ]
                 },
                 {
-                    q: `${s[decoys[4]]} claims they were on a video call during the escape. Proof!`,
+                    q: `🏠 You check ${d}'s favorite outdoor spot. Something's off.`,
                     options: [
-                        { text: `Verify the call`, clue: `The call log checks out... but wait. The call was on MUTE for 7 minutes around 3:47 PM. Suspicious gap.` },
-                        { text: `Who were they calling?`, clue: `"My friend." The friend confirms. But the friend also pauses weirdly when you ask about the mute...` }
+                        { text: `Fresh disturbance`, clue: `The ground is packed down. Someone was WAITING here. Footprints. Human footprints. They led ${d} out deliberately.` },
+                        { text: `Hidden items`, clue: `Under a bush: a bag of ${d}'s favorite treats. Half empty. Someone was preparing for this.` }
+                    ]
+                },
+
+                // === REVELATION PHASE ===
+                {
+                    q: `🚨 BREAKTHROUGH: You realize ${s[culprit]} was the ONLY one who didn't ask about ${d}'s whereabouts.`,
+                    options: [
+                        { text: `Because they already knew`, clue: `Everyone else panicked. Asked questions. Searched. ${s[culprit]} just... waited. Like they knew ${d} was fine. Suspicious.` },
+                        { text: `Or they didn't care`, clue: `But they claim to love ${d}. So why no concern? Unless... they knew exactly where ${d} went.` }
                     ]
                 },
                 {
-                    q: `You find ${d}'s leash tangled in the fence. How?`,
+                    q: `🔍 You review ${s[culprit]}'s alibi one more time. There's a crack.`,
                     options: [
-                        { text: `${d} pulled free`, clue: `The clip is still closed. Someone UNHOOKED ${d}. This wasn't an accident.` },
-                        { text: `Someone threw it there`, clue: `The angle is all wrong for ${d} running. Someone STAGED this.` }
+                        { text: `The TV was off`, clue: `They claimed to be watching TV. But the TV's power log shows it was OFF at 3:46 PM. They lied.` },
+                        { text: `No witnesses`, clue: `Everyone else can place someone with them. ${s[culprit]} was \"alone in their room.\" Convenient. Too convenient.` }
                     ]
                 },
                 {
-                    q: `🚨 TWIST: THREE different people admit to opening the door "briefly" that afternoon!`,
+                    q: `🐕 ${d} returns home. You watch where they go first.`,
+                    image: 'images/dog_collar.png',
                     options: [
-                        { text: `Interview all three`, clue: `${s[decoys[0]]}: "Just for a package." ${s[decoys[2]]}: "To check the weather." ${s[decoys[5]]}: "I don't remember why." One of these is a LIE.` },
-                        { text: `Check the timeline`, clue: `All three claim they closed it immediately. But ${d} got out somehow. Someone's not telling the whole truth.` }
+                        { text: `${d} avoids ${s[decoys[2]]}`, clue: `Walks right past them without acknowledgment. Strange. Unless ${s[decoys[2]]} did something to upset ${d}.` },
+                        { text: `${d} runs straight to ${s[culprit]}`, clue: `Tail wagging. Excited. Like greeting a co-conspirator. ${d} isn't scared of them. ${d} was let out BY them.` }
                     ]
                 },
                 {
-                    q: `${s[decoys[5]]}'s phone has a photo of ${d}... taken OUTSIDE the house at 3:52 PM.`,
+                    q: `⚡ FINAL MOMENT: You gather everyone. Time to make your accusation.`,
                     options: [
-                        { text: `"EXPLAIN THIS!"`, clue: `${s[decoys[5]]} breaks down: "I saw ${d} outside and tried to catch them! I didn't let them out, I SWEAR!"` },
-                        { text: `Check for other photos`, clue: `There's a deleted photo of... the back door. Open. With someone's shadow in frame. But whose?` }
-                    ]
-                },
-                {
-                    q: `The treats bag has fingerprints from ${s[0]}, ${s[2]}, ${s[4]}, AND ${s[6]}.`,
-                    options: [
-                        { text: `Four suspects with access`, clue: `But wait—${s[1]}, ${s[3]}, and ${s[5]} could have used gloves. Everyone's still a suspect.` },
-                        { text: `Who touched it LAST?`, clue: `The top layer of prints is too smudged. Useless. Someone was careful.` }
-                    ]
-                },
-                // ACT 3: THE CHAOS - Nothing makes sense
-                {
-                    q: `🚨 SHOCKING: ${s[decoys[1]]} accuses ${s[decoys[3]]} directly! "I SAW THEM DO IT!"`,
-                    options: [
-                        { text: `Believe them`, clue: `But ${s[decoys[3]]} has witnesses for their alibi... OR DO THEY? The witnesses are ${s[decoys[0]]} and ${s[decoys[2]]}. Everyone's covering for someone.` },
-                        { text: `It's a deflection`, clue: `${s[decoys[1]]}'s accusation is suspiciously specific. How do they know so much unless THEY were there?` }
-                    ]
-                },
-                {
-                    q: `You find a SECOND route ${d} could have escaped—the garage side door!`,
-                    options: [
-                        { text: `Check for evidence`, clue: `Paw prints near both doors. ${d} went to the back door, then the side door? Someone was CHASING them through the house!` },
-                        { text: `Who has garage access?`, clue: `Only ${s[0]}, ${s[1]}, and ${s[6]} have keys. But the door wasn't locked...` }
-                    ]
-                },
-                {
-                    q: `${s[decoys[4]]} suddenly "finds" ${d}'s collar in their pocket!`,
-                    options: [
-                        { text: `"HOW did that get there?!"`, clue: `${s[decoys[4]]}: "Someone must have PLANTED IT!" They're either framed... or the worst liar ever.` },
-                        { text: `Check for DNA`, clue: `The collar has ${d}'s fur (obviously) and... traces of hand lotion. ${s[decoys[4]]} doesn't use lotion. But ${s[decoys[2]]} does.` }
-                    ]
-                },
-                {
-                    q: `🚨 CONFESSION: "${s[decoys[0]]}" breaks down crying! "IT WAS ME! I... wait, no. It wasn't. I'm so confused!"`,
-                    options: [
-                        { text: `They're covering for someone`, clue: `${s[decoys[0]]} keeps glancing at ${s[decoys[3]]}. Are they taking the fall for family?` },
-                        { text: `The guilt is eating them`, clue: `But their confusion seems genuine. Maybe they SAW something and can't process it?` }
-                    ]
-                },
-                {
-                    q: `A neighbor's Ring camera caught audio: "Just go! Go! Before they see!" at 3:46 PM.`,
-                    options: [
-                        { text: `Voice analysis`, clue: `The audio quality is too poor. It could be anyone. It could be... ${d}? No, dogs can't talk. ...Can they?` },
-                        { text: `Who was home?`, clue: `Everyone claims they were inside. But someone was at that door, and someone was TALKING TO ${d}.` }
-                    ]
-                },
-                // ACT 4: THE REVELATION - Truth emerges
-                {
-                    q: `🚨 BREAKTHROUGH: You realize the timeline everyone gave has a 3-minute gap. EVERYONE was unaccounted for at 3:46 PM!`,
-                    options: [
-                        { text: `Press each suspect`, clue: `Under pressure, stories crack. ${s[decoys[2]]} admits they were "in the bathroom." ${s[decoys[4]]} was "looking for their charger." Nobody can prove where they were.` },
-                        { text: `Someone's lying`, clue: `In those 3 minutes, ${d} was let out. One person knows exactly what happened. The others are genuinely confused.` }
-                    ]
-                },
-                {
-                    q: `You notice ${s[culprit]} has been oddly... calm. Too calm.`,
-                    options: [
-                        { text: `Watch their body language`, clue: `While everyone else panics, ${s[culprit]} is measured. Composed. Like someone who knows exactly how this ends.` },
-                        { text: `Could be innocent confidence`, clue: `Then again, truly innocent people are sometimes the calmest. Or is that just what they want you to think?` }
-                    ]
-                },
-                {
-                    q: `🚨 THE REAL TWIST: ${d} RETURNED on their own... and went straight to ${s[culprit]}'s room!`,
-                    options: [
-                        { text: `${d} knows something`, clue: `Dogs don't lie. ${d} went right to the person they associate with... what? Guilt? Comfort? TREATS?` },
-                        { text: `Could be coincidence`, clue: `But ${d} passed 6 other people and 5 other rooms. Something drew them there specifically.` }
-                    ]
-                },
-                {
-                    q: `One final piece: ${s[culprit]}'s alibi has ONE tiny inconsistency that nobody noticed...`,
-                    options: [
-                        { text: `They claimed to be upstairs—but the floorboards never creaked`, clue: `You were in the kitchen at 3:46 PM. You would have heard. The floorboards ALWAYS creak. Unless ${s[culprit]} wasn't upstairs at all...` },
-                        { text: `The TV show they claimed to watch aired at 4 PM, not 3:45 PM`, clue: `A 15-minute gap. Where were they really? By the back door, perhaps?` }
-                    ]
-                },
-                {
-                    q: `It's time. Based on the evidence—and the lies—you must make your accusation.`,
-                    options: [
-                        { text: `"Gather everyone. It ends now."`, clue: `The room falls silent. All eyes on you. Think carefully, ${detective}. You only get one chance.` },
-                        { text: `"I need to think this through..."`, clue: `Review everything. The confusing testimonies. The planted evidence. The ONE person whose story quietly unraveled. Trust your gut.` }
+                        { text: `\"I know who did it.\"`, clue: `The room freezes. All eyes on you. The guilty party's hand twitches. Did you catch it?` },
+                        { text: `\"The evidence speaks for itself.\"`, clue: `You lay out your case. The timeline. The motive. The opportunity. One person fits ALL the criteria.` }
                     ]
                 }
             ];
@@ -1513,46 +1499,46 @@
             // Shuffle questions but keep the last 4 (revelation questions) at the end
             const investigationQuestions = allQuestions.slice(0, -4);
             const revelationQuestions = allQuestions.slice(-4);
-            shuffle(investigationQuestions);
+            fisherYatesShuffle(investigationQuestions);
 
             // Take 16 investigation questions + 4 revelation = 20 total
             questions = [...investigationQuestions.slice(0, 16), ...revelationQuestions];
 
-            // Bonus questions are also mysterious, featuring false leads
+            // Bonus questions - deeper investigation
             bonusQuestions = [
                 {
-                    q: `A new witness appears! The pizza delivery driver was here at 3:40 PM...`,
+                    q: `📞 A witness calls in: The UPS driver saw something.`,
                     options: [
-                        { text: `Interview them`, clue: `"I saw someone pacing by the back window. Looked stressed. Couldn't see their face though."` },
-                        { text: `Check the receipt`, clue: `The pizza was ordered by... ${s[decoys[1]]}. But they claimed they "weren't hungry" that day.` }
+                        { text: `Get their statement`, clue: `\"I saw someone at the fence. Looked like they were calling the dog over. Couldn't tell who.\"` },
+                        { text: `Can they identify anyone?`, clue: `\"Maybe? They were wearing something blue. Lot of people wear blue though.\"` }
                     ]
                 },
                 {
-                    q: `🚨 PLOT TWIST: ${s[decoys[3]]} reveals they have ${d} on a GPS tracker!`,
+                    q: `🔎 You find a receipt in the trash dated today.`,
                     options: [
-                        { text: `Check the route`, clue: `${d} went out the back, around the block, then... RETURNED before running off again? Someone brought ${d} back, then let them out AGAIN!` },
-                        { text: `Why didn't they mention this before?!`, clue: `${s[decoys[3]]}'s excuse: "I forgot I had it..." WHO FORGETS A GPS TRACKER ON THEIR DOG?` }
+                        { text: `What was purchased?`, clue: `Dog treats. The fancy kind. Purchased at 2:15 PM—less than two hours before ${d} disappeared. Pre-planned.` },
+                        { text: `Which store?`, clue: `A pet store 10 minutes away. Only ${s[decoys[3]]} and ${s[culprit]} have cars. One of them bought luring supplies.` }
                     ]
                 },
                 {
-                    q: `The torn note's missing piece is found—in ${s[decoys[5]]}'s jacket pocket!`,
+                    q: `💻 Security footage from a neighbor's house shows the street.`,
                     options: [
-                        { text: `Confront them`, clue: `${s[decoys[5]]}: "I FOUND IT! I was going to tell you!" Classic. They all say that.` },
-                        { text: `This could have been planted`, clue: `You're right to be suspicious. Multiple people had access to that jacket today.` }
+                        { text: `Check for ${d}`, clue: `${d} appears at 3:49 PM, heading down the sidewalk. Not running. WALKING. Like they're following someone.` },
+                        { text: `Any people visible?`, clue: `A figure walks ahead of ${d}, just out of frame. Leading ${d}. Always 10 feet ahead.` }
                     ]
                 },
                 {
-                    q: `${s[culprit]}'s browser history shows pet store searches... for "escape-proof harnesses."`,
+                    q: `🎯 You ask everyone to write down exactly what they were doing.`,
                     options: [
-                        { text: `They knew ${d} would run!`, clue: `Or... they were trying to PREVENT escapes. The search was from 2 weeks ago. Innocent or planning?` },
-                        { text: `Anyone could have used their computer`, clue: `True. But the search was done at 2 AM. Who else would be awake?` }
+                        { text: `Compare handwriting`, clue: `${s[culprit]}'s handwriting shakes. Nervous. The pen pressed too hard into the paper. Guilt.` },
+                        { text: `Look for inconsistencies`, clue: `${s[decoys[4]]} wrote they were \"outside.\" Earlier they said \"upstairs.\" Which is it?` }
                     ]
                 },
                 {
-                    q: `🚨 FINAL DISCOVERY: ${d}'s bark is caught on home assistant audio at exactly 3:46 PM. Someone says "Shhhh!"`,
+                    q: `🏁 FINAL CLUE: You check the smart home logs one more time.`,
                     options: [
-                        { text: `Enhance the audio`, clue: `The "shhhh" is quiet, careful. Whoever it was KNEW they were doing something wrong.` },
-                        { text: `${d} was trying to alert everyone`, clue: `${d} barked THREE TIMES. Three warnings. And someone silenced them each time.` }
+                        { text: `Door sensor data`, clue: `Back door opened at 3:46:23 PM. Closed at 3:46:41 PM. 18 seconds. Just enough time to let ${d} out and close it.` },
+                        { text: `Motion sensors`, clue: `Movement in the hallway at 3:45 PM, moving toward the back door. The sensor log doesn't lie.` }
                     ]
                 }
             ];
