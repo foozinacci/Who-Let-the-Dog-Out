@@ -533,6 +533,134 @@
             }
         }
 
+        /* Dramatic Animations */
+        @keyframes screenShake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: translateX(-5px);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: translateX(5px);
+            }
+        }
+
+        @keyframes dramaticFlash {
+            0% {
+                background: rgba(255, 255, 255, 0);
+            }
+
+            50% {
+                background: rgba(255, 255, 255, 0.3);
+            }
+
+            100% {
+                background: rgba(255, 255, 255, 0);
+            }
+        }
+
+        @keyframes glitchReveal {
+            0% {
+                transform: skewX(0deg);
+                filter: hue-rotate(0deg);
+            }
+
+            20% {
+                transform: skewX(-5deg);
+                filter: hue-rotate(90deg);
+            }
+
+            40% {
+                transform: skewX(5deg);
+                filter: hue-rotate(180deg);
+            }
+
+            60% {
+                transform: skewX(-2deg);
+                filter: hue-rotate(270deg);
+            }
+
+            80% {
+                transform: skewX(2deg);
+                filter: hue-rotate(360deg);
+            }
+
+            100% {
+                transform: skewX(0deg);
+                filter: hue-rotate(0deg);
+            }
+        }
+
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 40px rgba(236, 72, 153, 0.8), 0 0 60px rgba(168, 85, 247, 0.6);
+            }
+        }
+
+        @keyframes textReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+                filter: blur(10px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+                filter: blur(0);
+            }
+        }
+
+        .shake {
+            animation: screenShake 0.5s ease;
+        }
+
+        .flash {
+            animation: dramaticFlash 0.3s ease;
+        }
+
+        .glitch {
+            animation: glitchReveal 0.6s ease;
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2s infinite;
+        }
+
+        .text-reveal {
+            animation: textReveal 0.8s ease forwards;
+        }
+
+        /* Twist card enhanced styling */
+        .twist {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(220, 38, 38, 0.2) 100%);
+            padding: 1.2rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #ef4444;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 700;
+            animation: pulseGlow 2s infinite, textReveal 0.5s ease;
+        }
+
         .result-title {
             font-family: 'Fredoka One', cursive;
             font-size: 2rem;
@@ -930,17 +1058,41 @@
         }
         createFloatingPaws();
 
+        // ===== SOUND EFFECTS (separate from music) =====
+        const SFX = {
+            twist: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
+            reveal: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3',
+            suspense: 'https://assets.mixkit.co/active_storage/sfx/209/209-preview.mp3',
+            wrong: 'https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3',
+            correct: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3',
+            click: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'
+        };
+
+        function playSFX(type) {
+            try {
+                const audio = new Audio(SFX[type] || SFX.click);
+                audio.volume = 0.4;
+                audio.play().catch(() => { }); // Ignore autoplay errors
+            } catch (e) { }
+        }
+
         // ===== GAME STATE =====
         let detective = '';
         let dog = '';
         let suspects = [];
         let culprit = 0;
         let currentQuestion = 0;
-        let guessesLeft = 3;
+        let guessesLeft = 2; // Reduced from 3 for more difficulty
         let cluesFound = [];
         let inBonusRound = false;
         let bonusQuestionsAsked = 0;
         let totalQuestionsAsked = 0;
+
+        // Dynamic game elements
+        let escapeTime = '';
+        let escapeDay = '';
+        let characterRoles = {};
+        let storyVariant = 0;
 
         let questions = [];
         let bonusQuestions = [];
@@ -948,6 +1100,49 @@
         function getVal(id, def) {
             const v = document.getElementById(id).value.trim();
             return v || def;
+        }
+
+        // Generate random escape time (never 3:47)
+        function generateEscapeTime() {
+            const hours = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+            const mins = [0, 5, 10, 15, 18, 22, 25, 28, 31, 33, 38, 41, 43, 52, 55, 58];
+            // Exclude 3:47
+            let h, m;
+            do {
+                h = hours[Math.floor(Math.random() * hours.length)];
+                m = mins[Math.floor(Math.random() * mins.length)];
+            } while (h === 3 && m === 47);
+
+            const period = Math.random() > 0.3 ? 'PM' : 'AM';
+            return `${h}:${m.toString().padStart(2, '0')} ${period}`;
+        }
+
+        // Generate random day
+        function generateEscapeDay() {
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const modifiers = ['an ordinary', 'a perfectly normal', 'a seemingly quiet', 'an unremarkable', 'a lazy', 'a chaotic', 'a strange'];
+            return `${modifiers[Math.floor(Math.random() * modifiers.length)]} ${days[Math.floor(Math.random() * days.length)]}`;
+        }
+
+        // Assign unique roles to each character
+        function assignCharacterRoles() {
+            const roles = [
+                { type: 'liar', trait: 'keeps changing their story' },
+                { type: 'nervous', trait: 'is sweating and avoiding eye contact' },
+                { type: 'defensive', trait: 'gets angry when questioned' },
+                { type: 'helpful', trait: 'is suspiciously eager to help' },
+                { type: 'quiet', trait: 'has barely said a word all day' },
+                { type: 'alibi', trait: 'has a perfect alibi... too perfect' },
+                { type: 'accuser', trait: 'keeps pointing fingers at everyone else' }
+            ];
+
+            const shuffledRoles = [...roles].sort(() => Math.random() - 0.5);
+            const shuffledIndices = [0, 1, 2, 3, 4, 5, 6].sort(() => Math.random() - 0.5);
+
+            characterRoles = {};
+            shuffledIndices.forEach((idx, i) => {
+                characterRoles[idx] = shuffledRoles[i];
+            });
         }
 
         function startGame() {
@@ -964,26 +1159,81 @@
             ];
 
             culprit = Math.floor(Math.random() * 7);
+            escapeTime = generateEscapeTime();
+            escapeDay = generateEscapeDay();
+            storyVariant = Math.floor(Math.random() * 5);
+            assignCharacterRoles();
+
             generateQuestions();
 
             document.getElementById('dogNameTitle').textContent = dog;
             document.getElementById('storyText').innerHTML = generateStory();
 
+            playSFX('suspense');
             showScreen('storyScreen');
         }
 
         function generateStory() {
-            return `
-                <p>It was 3:47 PM on a Tuesday. Nothing special. Nothing suspicious.</p>
-                <p>Then <strong>${suspects[0]}</strong> screamed.</p>
-                <p>The back door was open. The leash was on the floor. <strong>${dog}</strong> was gone.</p>
-                <p>Everyone claims they were busy. Everyone has an alibi. Everyone loved ${dog}.</p>
-                <p>But someone let that dog out.</p>
-                <p>Was it on purpose? Was it an accident? Was it... ${dog} themselves?</p>
-                <p><strong>Seven suspects. One dog. No witnesses.</strong></p>
-                <p>Well, one witness. But they can't talk. And they're missing.</p>
-                <p><em>${detective}, find out who let ${dog} out.</em></p>
-            `;
+            const s = suspects;
+            const d = dog;
+            const t = escapeTime;
+            const day = escapeDay;
+
+            // Random story opener
+            const openers = [
+                `<p>It was ${t} on ${day}. Nothing special. Nothing suspicious.</p>`,
+                `<p>The clock struck ${t}. It was ${day}, and everything seemed fine.</p>`,
+                `<p>${day}. ${t}. The moment everything changed.</p>`,
+                `<p>Nobody saw it coming. ${t} on ${day}—the calm before the storm.</p>`,
+                `<p>If you asked anyone what they were doing at ${t} on ${day}, they'd all have an answer. But one of them is lying.</p>`
+            ];
+
+            // Random discovery scene
+            const discoveries = [
+                `<p>Then <strong>${s[Math.floor(Math.random() * 7)]}</strong> screamed.</p>
+                 <p>The back door was open. The leash was on the floor. <strong>${d}</strong> was gone.</p>`,
+                `<p><strong>${s[Math.floor(Math.random() * 7)]}</strong> noticed first. "${d}? <em>${d}?!</em>" The panic in their voice was real.</p>
+                 <p>The gate was swinging in the wind. No ${d} in sight.</p>`,
+                `<p>It was <strong>${s[Math.floor(Math.random() * 7)]}</strong> who found the empty collar by the fence.</p>
+                 <p>"${d} is GONE!" The words echoed through the house.</p>`,
+                `<p>The house went silent when <strong>${s[Math.floor(Math.random() * 7)]}</strong> checked ${d}'s usual spot.</p>
+                 <p>Empty. The crate door was wide open. The back door... also open.</p>`,
+                `<p>"Has anyone seen ${d}?" <strong>${s[Math.floor(Math.random() * 7)]}</strong> asked innocently enough.</p>
+                 <p>Then the realization hit. The door. The empty yard. The missing dog.</p>`
+            ];
+
+            // Random character dynamics based on roles
+            let dynamicsText = '<p>';
+            Object.entries(characterRoles).forEach(([idx, role]) => {
+                if (Math.random() > 0.6) {
+                    dynamicsText += `${s[idx]} ${role.trait}. `;
+                }
+            });
+            dynamicsText += '</p>';
+
+            // Random twists in the setup
+            const twists = [
+                `<p>Strange thing is—the security camera was conveniently "broken" since yesterday.</p>`,
+                `<p>Even stranger: ${s[Math.floor(Math.random() * 7)]} was seen near the door just minutes before.</p>`,
+                `<p>The weirdest part? ${d}'s treats are scattered in a trail leading outside. Someone lured them.</p>`,
+                `<p>But here's the thing: THREE different people had access to that door. And they're all lying about something.</p>`,
+                `<p>What nobody's talking about: there was an argument earlier. A loud one. About ${d}.</p>`
+            ];
+
+            const closers = [
+                `<p><strong>Seven suspects. One dog. Zero reliable witnesses.</strong></p>
+                 <p><em>${detective}, find out who let ${d} out.</em></p>`,
+                `<p><strong>Everyone has a motive. Everyone has an alibi. Everyone is suspicious.</strong></p>
+                 <p><em>Good luck, ${detective}. You'll need it.</em></p>`,
+                `<p><strong>The truth is hiding in plain sight. But whose truth?</strong></p>
+                 <p><em>${detective}, cut through the lies.</em></p>`
+            ];
+
+            return openers[Math.floor(Math.random() * openers.length)] +
+                discoveries[Math.floor(Math.random() * discoveries.length)] +
+                dynamicsText +
+                twists[Math.floor(Math.random() * twists.length)] +
+                closers[Math.floor(Math.random() * closers.length)];
         }
 
         function generateQuestions() {
@@ -1249,7 +1499,20 @@
             const q = inBonusRound ? bonusQuestions[bonusQuestionsAsked] : questions[currentQuestion];
             const selected = q.options[index];
 
-            const clueClass = q.q.includes('TWIST') || q.q.includes('BOMBSHELL') || q.q.includes('SHOCKING') || q.q.includes('CONFESSION') || q.q.includes('BREAKTHROUGH') ? 'twist' : 'clue';
+            // Check if this is a dramatic moment
+            const isDramatic = q.q.includes('TWIST') || q.q.includes('BOMBSHELL') || q.q.includes('SHOCKING') || q.q.includes('CONFESSION') || q.q.includes('BREAKTHROUGH') || q.q.includes('FINAL');
+            const clueClass = isDramatic ? 'twist' : 'clue';
+
+            // Play appropriate sound effect
+            if (isDramatic) {
+                playSFX('twist');
+                // Add screen shake for dramatic moments
+                document.querySelector('.container').classList.add('shake');
+                setTimeout(() => document.querySelector('.container').classList.remove('shake'), 500);
+            } else {
+                playSFX('reveal');
+            }
+
             document.getElementById('clueArea').innerHTML = `<div class="${clueClass}">${selected.clue}</div>`;
 
             cluesFound.push(selected.clue);
@@ -1333,8 +1596,14 @@
 
         function makeGuess(index) {
             if (index === culprit) {
+                playSFX('correct');
                 showResult(true);
             } else {
+                playSFX('wrong');
+                // Shake on wrong guess
+                document.querySelector('.container').classList.add('shake');
+                setTimeout(() => document.querySelector('.container').classList.remove('shake'), 500);
+
                 guessesLeft--;
                 if (guessesLeft <= 0) {
                     showResult(false);
@@ -1365,6 +1634,10 @@
             document.getElementById('resultTitle').textContent = title;
             document.getElementById('resultTitle').style.color = won ? '#4ade80' : '#f87171';
             document.getElementById('resultText').innerHTML = text;
+
+            // Dramatic reveal animation
+            document.querySelector('.container').classList.add('glitch');
+            setTimeout(() => document.querySelector('.container').classList.remove('glitch'), 600);
 
             showScreen('resultScreen');
         }
