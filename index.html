@@ -1249,7 +1249,7 @@
             const q = inBonusRound ? bonusQuestions[bonusQuestionsAsked] : questions[currentQuestion];
             const selected = q.options[index];
 
-            const clueClass = q.q.includes('TWIST') ? 'twist' : 'clue';
+            const clueClass = q.q.includes('TWIST') || q.q.includes('BOMBSHELL') || q.q.includes('SHOCKING') || q.q.includes('CONFESSION') || q.q.includes('BREAKTHROUGH') ? 'twist' : 'clue';
             document.getElementById('clueArea').innerHTML = `<div class="${clueClass}">${selected.clue}</div>`;
 
             cluesFound.push(selected.clue);
@@ -1261,25 +1261,32 @@
             });
             document.querySelectorAll('.option')[index].style.opacity = '1';
 
-            setTimeout(() => {
-                if (inBonusRound) {
-                    bonusQuestionsAsked++;
-                    if (bonusQuestionsAsked >= 5) {
-                        inBonusRound = false;
-                        bonusQuestionsAsked = 0;
-                        showGuessScreen();
-                    } else {
-                        showBonusQuestion();
-                    }
+            // Add Continue button instead of auto-advancing
+            document.getElementById('optionsArea').innerHTML += `
+                <button class="btn continue-btn" onclick="advanceQuestion()" style="margin-top: 1.5rem;">
+                    ➡️ CONTINUE
+                </button>
+            `;
+        }
+
+        function advanceQuestion() {
+            if (inBonusRound) {
+                bonusQuestionsAsked++;
+                if (bonusQuestionsAsked >= 5) {
+                    inBonusRound = false;
+                    bonusQuestionsAsked = 0;
+                    showGuessScreen();
                 } else {
-                    currentQuestion++;
-                    if (currentQuestion >= 20) {
-                        showGuessScreen();
-                    } else {
-                        showQuestion();
-                    }
+                    showBonusQuestion();
                 }
-            }, 2000);
+            } else {
+                currentQuestion++;
+                if (currentQuestion >= 20) {
+                    showGuessScreen();
+                } else {
+                    showQuestion();
+                }
+            }
         }
 
         function showBonusQuestion() {
