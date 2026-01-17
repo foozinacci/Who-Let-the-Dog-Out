@@ -1502,20 +1502,17 @@
             // Shuffle main questions, append revelations at end
             fisherYatesShuffle(allQuestions);
 
-            // Log question count and first question for debugging
+            // Log question count and first 3 questions for debugging
+            console.log('=== QUESTION GENERATION DEBUG ===');
             console.log('Generated ' + allQuestions.length + ' questions');
-            console.log('First question after shuffle:', allQuestions[0]?.q);
+            console.log('First 3 questions after shuffle:');
+            console.log('  1:', allQuestions[0]?.q?.substring(0, 50));
+            console.log('  2:', allQuestions[1]?.q?.substring(0, 50));
+            console.log('  3:', allQuestions[2]?.q?.substring(0, 50));
 
-            // Take 30 and add revelation questions
-            const finalQuestions = [...allQuestions.slice(0, 27), ...revelationQuestions];
-
-            const allQuestionsBank = finalQuestions;
-
-            // Store the full question bank (shuffled - already shuffled above)
+            // Store the full question bank (shuffled)
             allQuestionBank = allQuestions;
-
-            // Start with first phase
-            loadPhaseQuestions();
+            console.log('allQuestionBank length:', allQuestionBank.length);
 
             // Bonus questions - continue investigation
             bonusQuestions = [
@@ -1555,6 +1552,7 @@
                     ]
                 }
             ];
+            console.log('Bonus questions created:', bonusQuestions.length);
         }
 
         function loadPhaseQuestions() {
@@ -1562,6 +1560,14 @@
             const startIdx = (currentPhase - 1) * questionsPerPhase;
             phaseQuestions = allQuestionBank.slice(startIdx, startIdx + questionsPerPhase);
             currentQuestion = 0;
+
+            console.log('=== PHASE LOAD DEBUG ===');
+            console.log('currentPhase:', currentPhase);
+            console.log('startIdx:', startIdx);
+            console.log('allQuestionBank length:', allQuestionBank.length);
+            console.log('phaseQuestions length:', phaseQuestions.length);
+            console.log('First phase question:', phaseQuestions[0]?.q?.substring(0, 50));
+            console.log('Second phase question:', phaseQuestions[1]?.q?.substring(0, 50));
         }
 
         function startQuestions() {
