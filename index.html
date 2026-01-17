@@ -1149,15 +1149,25 @@
             detective = getVal('detectiveName', 'Detective');
             dog = getVal('dogName', 'Tiny');
 
-            // Get all suspects
+            // Pool of random default names
+            const namePool = [
+                'Mom', 'Dad', 'Brother', 'Sister', 'Grandma', 'Grandpa', 'Uncle', 'Aunt',
+                'The Neighbor', 'The Mailman', 'The Dog Walker', 'The Babysitter', 'The Gardener',
+                'Best Friend', 'The Cousin', 'Roommate', 'The Chef', 'The Butler',
+                'A Stranger', 'The Delivery Guy', 'The Handyman', 'The Pet Sitter',
+                'The Teacher', 'The Coach', 'The Ex', 'The Boss', 'The Intern',
+                'Karen', 'Kevin', 'Chad', 'Becky', 'Steve', 'Linda', 'Gary', 'Susan'
+            ].sort(() => Math.random() - 0.5);
+
+            // Get all suspects with randomized defaults
             let tempSuspects = [
-                getVal('suspect1', 'Mom'),
-                getVal('suspect2', 'Dad'),
-                getVal('suspect3', 'Brother'),
-                getVal('suspect4', 'Sister'),
-                getVal('suspect5', 'Neighbor'),
-                getVal('suspect6', 'The Dog'),
-                getVal('suspect7', 'A Stranger')
+                getVal('suspect1', namePool[0]),
+                getVal('suspect2', namePool[1]),
+                getVal('suspect3', namePool[2]),
+                getVal('suspect4', namePool[3]),
+                getVal('suspect5', namePool[4]),
+                getVal('suspect6', namePool[5]),
+                getVal('suspect7', namePool[6])
             ];
 
             // Shuffle the suspects array so order is always different
