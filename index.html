@@ -1151,6 +1151,79 @@
         let characterRoles = {};
         let storyVariant = 0;
 
+        // ===== DYNAMIC PLOT SYSTEM =====
+        // Each suspect gets randomly assigned attributes that drive the narrative
+        let suspectProfiles = [];
+
+        const MOTIVES = [
+            { id: 'neutral', label: 'Neutral / routine', clue: 'had no particular reason to act' },
+            { id: 'annoyance', label: 'Annoyance', clue: 'seemed frustrated with the situation' },
+            { id: 'careless', label: 'Carelessness', clue: 'wasn\'t paying attention' },
+            { id: 'sympathy', label: 'Sympathy for the dog', clue: 'thought the dog needed freedom' },
+            { id: 'selfinterest', label: 'Self-interest', clue: 'had something to gain' },
+            { id: 'panic', label: 'Fear / panic', clue: 'was acting out of desperation' },
+            { id: 'pressure', label: 'Social pressure', clue: 'felt pressured by someone else' },
+            { id: 'moral', label: 'Moral justification', clue: 'believed they were doing the right thing' },
+            { id: 'exhaustion', label: 'Exhaustion', clue: 'was too tired to think straight' },
+            { id: 'greed', label: 'Greed', clue: 'wanted something for themselves' }
+        ];
+
+        const METHODS = [
+            { id: 'door', label: 'Door left open', clue: 'The door wasn\'t properly closed' },
+            { id: 'gate', label: 'Gate unlatched', clue: 'The gate latch was undone' },
+            { id: 'leash', label: 'Leash failure', clue: 'The leash wasn\'t secured properly' },
+            { id: 'deliberate', label: 'Deliberate release', clue: 'Someone opened the door on purpose' },
+            { id: 'miscomm', label: 'Miscommunication', clue: 'There was a mix-up about who was watching' },
+            { id: 'distract', label: 'Distraction', clue: 'Someone got distracted at the wrong moment' },
+            { id: 'accident', label: 'Physical accident', clue: 'It was a clumsy mistake' },
+            { id: 'tech', label: 'Technology failure', clue: 'The smart lock/camera failed' },
+            { id: 'handoff', label: 'Handed to someone', clue: 'The dog was given to another person' },
+            { id: 'escape', label: 'Dog escaped on its own', clue: 'The dog was determined to get out' }
+        ];
+
+        const AWARENESS = [
+            { id: 'aware', label: 'Fully aware', clue: 'knew exactly what was happening' },
+            { id: 'suspected', label: 'Suspected something', clue: 'had a feeling something was wrong' },
+            { id: 'late', label: 'Noticed too late', clue: 'realized what happened after the fact' },
+            { id: 'unaware', label: 'Completely unaware', clue: 'had no idea anything happened' },
+            { id: 'lied', label: 'Lied about awareness', clue: 'is pretending not to know' }
+        ];
+
+        const INTENT = [
+            { id: 'accident', label: 'Pure accident', clue: 'It was genuinely unintentional' },
+            { id: 'negligence', label: 'Negligence', clue: 'They should have been more careful' },
+            { id: 'mixed', label: 'Mixed intent', clue: 'Part of them wanted this to happen' },
+            { id: 'dogsgood', label: 'For the dog\'s good', clue: 'They thought they were helping the dog' },
+            { id: 'deliberate', label: 'Deliberate wrongdoing', clue: 'They did this on purpose' }
+        ];
+
+        const AFTERMATH = [
+            { id: 'helped', label: 'Tried to help search', clue: 'immediately joined the search' },
+            { id: 'covered', label: 'Covered tracks', clue: 'started hiding evidence' },
+            { id: 'panicked', label: 'Panicked and hid', clue: 'froze up and withdrew' },
+            { id: 'partial', label: 'Confessed partially', clue: 'admitted to some but not all' },
+            { id: 'deflected', label: 'Deflected blame', clue: 'started pointing fingers at others' },
+            { id: 'victim', label: 'Played victim', clue: 'acted like this affected them most' },
+            { id: 'normal', label: 'Acted normally', clue: 'behaved as if nothing happened' }
+        ];
+
+        function generateSuspectProfiles() {
+            suspectProfiles = [];
+            for (let i = 0; i < 7; i++) {
+                suspectProfiles.push({
+                    motive: MOTIVES[trueRandom(MOTIVES.length)],
+                    method: METHODS[trueRandom(METHODS.length)],
+                    awareness: AWARENESS[trueRandom(AWARENESS.length)],
+                    intent: INTENT[trueRandom(INTENT.length)],
+                    aftermath: AFTERMATH[trueRandom(AFTERMATH.length)]
+                });
+            }
+            console.log('=== SUSPECT PROFILES GENERATED ===');
+            suspects.forEach((name, i) => {
+                console.log(`${name}: ${suspectProfiles[i].motive.label}, ${suspectProfiles[i].method.label}, ${suspectProfiles[i].aftermath.label}`);
+            });
+        }
+
         let questions = [];
         let bonusQuestions = [];
 
@@ -1213,16 +1286,6 @@
             return Math.floor((Math.random() + Math.random() + Math.random()) / 3 * max);
         }
 
-        // Fisher-Yates shuffle for true randomness
-        function fisherYatesShuffle(array) {
-            const arr = [...array];
-            for (let i = arr.length - 1; i > 0; i--) {
-                const j = trueRandom(i + 1);
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-            }
-            return arr;
-        }
-
         function startGame() {
             detective = getVal('detectiveName', 'Detective');
             dog = getVal('dogName', 'Tiny');
@@ -1261,6 +1324,9 @@
             escapeDay = generateEscapeDay();
             storyVariant = trueRandom(5);
             assignCharacterRoles();
+
+            // Generate unique profiles for each suspect
+            generateSuspectProfiles();
 
             generateQuestions();
 
