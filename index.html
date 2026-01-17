@@ -1502,8 +1502,9 @@
             // Shuffle main questions, append revelations at end
             fisherYatesShuffle(allQuestions);
 
-            // Log question count for debugging
+            // Log question count and first question for debugging
             console.log('Generated ' + allQuestions.length + ' questions');
+            console.log('First question after shuffle:', allQuestions[0]?.q);
 
             // Take 30 and add revelation questions
             const finalQuestions = [...allQuestions.slice(0, 27), ...revelationQuestions];
@@ -1600,7 +1601,7 @@
         }
 
         function selectAnswer(index) {
-            const q = inBonusRound ? bonusQuestions[bonusQuestionsAsked] : questions[currentQuestion];
+            const q = inBonusRound ? bonusQuestions[bonusQuestionsAsked] : phaseQuestions[currentQuestion];
             const selected = q.options[index];
 
             // Check if this is a dramatic moment
